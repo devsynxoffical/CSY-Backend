@@ -1,0 +1,1181 @@
+{
+    "info": {
+        "name": "CoreSY API - Complete Collection",
+        "_postman_id": "coresy-complete-api",
+        "description": "Complete API collection with automated tests for CoreSY Platform",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{auth_token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Global pre-request script",
+                    "console.log('Request:', pm.request.method, pm.request.url.toString());"
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Global test script",
+                    "pm.test('Response time is less than 5000ms', function () {",
+                    "    pm.expect(pm.response.responseTime).to.be.below(5000);",
+                    "});",
+                    "",
+                    "pm.test('Response has success field', function () {",
+                    "    var jsonData = pm.response.json();",
+                    "    pm.expect(jsonData).to.have.property('success');",
+                    "});"
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:3119",
+            "type": "string"
+        },
+        {
+            "key": "auth_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "user_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "business_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "business_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "driver_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "driver_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "cashier_token",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "order_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "reservation_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "product_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "address_id",
+            "value": "",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "01 - Authentication",
+            "item": [
+                {
+                    "name": "User Registration",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response has token', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property('token');",
+                                    "    pm.expect(jsonData.data).to.have.property('user');",
+                                    "    ",
+                                    "    // Save token and user_id",
+                                    "    pm.environment.set('auth_token', jsonData.data.token);",
+                                    "    pm.environment.set('user_id', jsonData.data.user.id);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"full_name\": \"Test User\",\n  \"email\": \"test{{$timestamp}}@example.com\",\n  \"phone\": \"+963{{$randomInt}}\",\n  \"password\": \"password123\",\n  \"governorate_code\": \"DM\",\n  \"ai_assistant_name\": \"Alex\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "User Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Login successful', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.success).to.be.true;",
+                                    "    pm.expect(jsonData.data).to.have.property('token');",
+                                    "    ",
+                                    "    // Save token",
+                                    "    pm.environment.set('auth_token', jsonData.data.token);",
+                                    "    pm.environment.set('user_id', jsonData.data.user.id);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Forgot Password",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"email\": \"test@example.com\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/auth/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "forgot-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "02 - User Operations",
+            "item": [
+                {
+                    "name": "Get User Profile",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Profile has user data', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data.user).to.have.property('email');",
+                                    "    pm.expect(jsonData.data.user).to.have.property('full_name');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/profile",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "profile"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update User Profile",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"full_name\": \"Updated Name\",\n  \"ai_assistant_name\": \"Sophia\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/profile",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "profile"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Wallet Balance",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Has wallet balance', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property('balance');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/wallet",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "wallet"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Points Balance",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Has points data', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property('balance');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/points",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "points"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Add Address",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test('Address created', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data.address).to.have.property('id');",
+                                    "    ",
+                                    "    // Save address_id",
+                                    "    pm.environment.set('address_id', jsonData.data.address.id);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"recipient_name\": \"Ahmad Hassan\",\n  \"area\": \"Mazzeh\",\n  \"street\": \"Al-Jalaa Street\",\n  \"city\": \"Damascus\",\n  \"floor\": \"3\",\n  \"phone\": \"+963911111111\",\n  \"latitude\": 33.5138,\n  \"longitude\": 36.2765,\n  \"is_default\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/user/addresses",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "addresses"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Addresses",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/user/addresses",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "addresses"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "03 - Business Operations",
+            "item": [
+                {
+                    "name": "Business Registration",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test('Business registered', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property('token');",
+                                    "    pm.expect(jsonData.data).to.have.property('business');",
+                                    "    ",
+                                    "    // Save business token and ID",
+                                    "    pm.environment.set('business_token', jsonData.data.token);",
+                                    "    pm.environment.set('business_id', jsonData.data.business.id);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"owner_email\": \"business{{$timestamp}}@example.com\",\n  \"password\": \"password123\",\n  \"business_name\": \"Test Restaurant {{$randomInt}}\",\n  \"business_type\": \"restaurant\",\n  \"app_type\": \"pass\",\n  \"address\": \"123 Main St\",\n  \"city\": \"Damascus\",\n  \"governorate\": \"Damascus\",\n  \"latitude\": 33.5138,\n  \"longitude\": 36.2765,\n  \"has_reservations\": true,\n  \"has_delivery\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/business/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "business",
+                                "register"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Business Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Login successful', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data).to.have.property('token');",
+                                    "    ",
+                                    "    // Save business token",
+                                    "    pm.environment.set('business_token', jsonData.data.token);",
+                                    "    pm.environment.set('business_id', jsonData.data.business.id);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"owner_email\": \"business@example.com\",\n  \"password\": \"password123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/business/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "business",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get All Businesses",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Has businesses array', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data.businesses).to.be.an('array');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/business?city=Damascus&type=restaurant",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "business"
+                            ],
+                            "query": [
+                                {
+                                    "key": "city",
+                                    "value": "Damascus"
+                                },
+                                {
+                                    "key": "type",
+                                    "value": "restaurant"
+                                }
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Business by ID",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/business/{{business_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "business",
+                                "{{business_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Business Products",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Has products array', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data.products).to.be.an('array');",
+                                    "    ",
+                                    "    // Save first product ID if exists",
+                                    "    if (jsonData.data.products.length > 0) {",
+                                    "        pm.environment.set('product_id', jsonData.data.products[0].id);",
+                                    "    }",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/business/{{business_id}}/products",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "business",
+                                "{{business_id}}",
+                                "products"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "04 - Orders",
+            "item": [
+                {
+                    "name": "Create Order",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test('Order created', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data.order).to.have.property('id');",
+                                    "    ",
+                                    "    // Save order_id",
+                                    "    pm.environment.set('order_id', jsonData.data.order.id);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"order_type\": \"delivery\",\n  \"payment_method\": \"online\",\n  \"address_id\": \"{{address_id}}\",\n  \"items\": [\n    {\n      \"business_id\": \"{{business_id}}\",\n      \"product_id\": \"{{product_id}}\",\n      \"quantity\": 2\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/orders",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "orders"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Orders",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Has orders array', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data.orders).to.be.an('array');",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/orders",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "orders"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Order by ID",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/orders/{{order_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "orders",
+                                "{{order_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Track Order",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/orders/{{order_id}}/track",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "orders",
+                                "{{order_id}}",
+                                "track"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "05 - Reservations",
+            "item": [
+                {
+                    "name": "Create Reservation",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test('Reservation created', function () {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.expect(jsonData.data.reservation).to.have.property('id');",
+                                    "    ",
+                                    "    // Save reservation_id",
+                                    "    pm.environment.set('reservation_id', jsonData.data.reservation.id);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"business_id\": \"{{business_id}}\",\n  \"reservation_type\": \"table\",\n  \"date\": \"2025-12-01\",\n  \"time\": \"18:00\",\n  \"duration\": 120,\n  \"number_of_people\": 4,\n  \"payment_method\": \"cash\",\n  \"notes\": \"Window seat preferred\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/reservations",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "reservations"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Reservations",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/reservations",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "reservations"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "06 - Payments",
+            "item": [
+                {
+                    "name": "Add Wallet Balance",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"amount\": 50000,\n  \"payment_method\": \"stripe\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/payments/wallet/topup",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "payments",
+                                "wallet",
+                                "topup"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Transaction History",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/payments/transactions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "payments",
+                                "transactions"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "07 - QR Operations",
+            "item": [
+                {
+                    "name": "Generate Payment QR",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"amount\": 25000,\n  \"type\": \"payment\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/qr/generate",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "qr",
+                                "generate"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "08 - Ratings",
+            "item": [
+                {
+                    "name": "Submit Rating",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"business_id\": \"{{business_id}}\",\n  \"rating\": 5,\n  \"comment\": \"Excellent service and food!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/ratings",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "ratings"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Business Ratings",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "pm.test('Status code is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/ratings/business/{{business_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "ratings",
+                                "business",
+                                "{{business_id}}"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}

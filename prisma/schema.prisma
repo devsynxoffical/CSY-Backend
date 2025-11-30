@@ -1,0 +1,606 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum GovernorateCode {
+  DM  // Damascus & Rural Damascus
+  HS  // Homs
+  HM  // Hama
+  LK  // Latakia
+  TS  // Tartus
+  HL  // Aleppo
+  DL  // Idlib
+  SD  // As-Suwayda
+  DR  // Daraa
+  KR  // Quneitra
+  HK  // Al-Hasakah
+  RQ  // Raqqa
+  DZ  // Deir ez-Zor
+}
+
+enum BusinessType {
+  restaurant
+  cafe
+  pharmacy
+  clinic
+  beauty_center
+  juice_shop
+  dessert_shop
+  fast_food
+  supermarket
+  recreational
+  other
+}
+
+enum AppType {
+  pass
+  care
+  go
+  pass_go
+  care_go
+}
+
+enum ReservationType {
+  table
+  activity
+  medical
+  beauty
+}
+
+enum OrderType {
+  delivery
+  pickup
+}
+
+enum PaymentMethod {
+  cash
+  online
+  wallet
+}
+
+enum PaymentStatus {
+  pending
+  paid
+  refunded
+  failed
+}
+
+enum OrderStatus {
+  pending
+  accepted
+  preparing
+  waiting_driver
+  in_delivery
+  completed
+  cancelled
+}
+
+enum ReservationStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+  expired
+}
+
+enum TransactionType {
+  payment
+  discount
+  refund
+  wallet_topup
+  earnings
+}
+
+enum ReferenceType {
+  reservation
+  order
+  wallet
+}
+
+enum TransactionStatus {
+  pending
+  completed
+  failed
+  refunded
+}
+
+// ============================================
+// USER MODELS
+// ============================================
+
+model User {
+  id                String    @id @default(uuid())
+  full_name         String
+  email             String    @unique
+  phone             String    @unique
+  password_hash     String
+  pass_id           String    @unique
+  governorate_code  GovernorateCode
+  ai_assistant_name String?
+  profile_picture   String?   // S3 URL
+  wallet_balance    Decimal   @default(0) @db.Decimal(10, 2)
+  points            Int       @default(0)
+  is_active         Boolean   @default(true)
+  is_verified       Boolean   @default(false)
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+
+  // Relations
+  addresses      Address[]
+  reservations   Reservation[]
+  orders         Order[]
+  transactions   Transaction[]  @relation("UserTransactions")
+  wallet         Wallet?
+  points_history Points[]
+  ratings        Rating[]
+  notifications  Notification[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([pass_id])
+  @@index([governorate_code])
+  @@map("users")
+}
+
+model Address {
+  id              String   @id @default(uuid())
+  user_id         String
+  recipient_name  String
+  area            String
+  street          String
+  city            String
+  floor           String?
+  phone           String
+  latitude        Decimal? @db.Decimal(10, 8)
+  longitude       Decimal? @db.Decimal(11, 8)
+  is_default      Boolean  @default(false)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  // Relations
+  user   User    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([user_id])
+  @@map("addresses")
+}
+
+model Wallet {
+  id         String   @id @default(uuid())
+  user_id    String   @unique
+  balance    Decimal  @default(0) @db.Decimal(10, 2)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("wallets")
+}
+
+model Points {
+  id              String   @id @default(uuid())
+  user_id         String
+  points_earned   Int
+  points_redeemed Int      @default(0)
+  reference_type  String   // 'reservation', 'order', 'rating', 'bonus'
+  reference_id    String?
+  description     String?
+  created_at      DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([reference_type, reference_id])
+  @@map("points")
+}
+
+// ============================================
+// BUSINESS MODELS
+// ============================================
+
+model Business {
+  id             String       @id @default(uuid())
+  owner_email    String       @unique
+  password_hash  String
+  business_name  String
+  business_type  BusinessType
+  app_type       AppType
+  has_reservations Boolean    @default(false)
+  has_delivery   Boolean      @default(false)
+  address        String
+  city           String
+  governorate    String
+  latitude       Decimal      @db.Decimal(10, 8)
+  longitude      Decimal      @db.Decimal(11, 8)
+  working_hours  Json?        // JSONB for flexible hours structure
+  photos         String[]     // Array of S3 URLs
+  videos         String[]     // Array of S3 URLs
+  rating_average Decimal      @default(0) @db.Decimal(3, 2)
+  rating_count   Int          @default(0)
+  is_active      Boolean      @default(true)
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+
+  // Relations
+  cashiers      Cashier[]
+  reservations  Reservation[]
+  appointments  Appointment[]
+  products      Product[]
+  order_items   OrderItem[]
+  transactions  Transaction[]  @relation("BusinessTransactions")
+  ratings       Rating[]
+  notifications Notification[]
+
+  @@index([owner_email])
+  @@index([business_type])
+  @@index([app_type])
+  @@index([city])
+  @@index([governorate])
+  @@index([latitude, longitude])
+  @@map("businesses")
+}
+
+model Cashier {
+  id            String   @id @default(uuid())
+  business_id   String
+  email         String   @unique
+  password_hash String
+  full_name     String?
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  // Relations
+  business     Business      @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  qr_scans     QRCode[]
+  transactions Transaction[] @relation("CashierTransactions")
+
+  @@index([business_id])
+  @@index([email])
+  @@map("cashiers")
+}
+
+model Appointment {
+  id           String   @id @default(uuid())
+  business_id  String
+  service_name String?
+  description  String?
+  date         DateTime @db.Date
+  time         String   // TIME format like "14:30"
+  duration     Int      // in minutes
+  price        Decimal? @db.Decimal(10, 2)
+  is_available Boolean  @default(true)
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  // Relations
+  business Business @relation(fields: [business_id], references: [id], onDelete: Cascade)
+
+  @@index([business_id])
+  @@index([date, time])
+  @@map("appointments")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  business_id String
+  name        String
+  description String?
+  ingredients String?
+  image_url   String?  // S3 URL
+  price       Decimal  @db.Decimal(10, 2)
+  weight      String?
+  category    String?
+  is_available Boolean @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  business    Business    @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  order_items OrderItem[]
+
+  @@index([business_id])
+  @@index([category])
+  @@map("products")
+}
+
+// ============================================
+// DRIVER MODELS
+// ============================================
+
+model Driver {
+  id                  String   @id @default(uuid())
+  full_name           String
+  email               String   @unique
+  phone               String   @unique
+  password_hash       String
+  vehicle_type        String
+  profile_picture     String?  // S3 URL
+  earnings_cash       Decimal  @default(0) @db.Decimal(10, 2)
+  earnings_online     Decimal  @default(0) @db.Decimal(10, 2)
+  platform_fees_owed  Decimal  @default(0) @db.Decimal(10, 2)
+  current_latitude    Decimal? @db.Decimal(10, 8)
+  current_longitude   Decimal? @db.Decimal(11, 8)
+  is_available        Boolean  @default(false)
+  is_active           Boolean  @default(true)
+  rating_average      Decimal  @default(0) @db.Decimal(3, 2)
+  rating_count        Int      @default(0)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  // Relations
+  orders        Order[]
+  transactions  Transaction[] @relation("DriverTransactions")
+  ratings       Rating[]
+  notifications Notification[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([is_available])
+  @@index([current_latitude, current_longitude])
+  @@map("drivers")
+}
+
+// ============================================
+// RESERVATION MODELS
+// ============================================
+
+model Reservation {
+  id               String            @id @default(uuid())
+  user_id          String
+  business_id      String
+  reservation_type ReservationType
+  specialty        String?           // For medical services
+  date             DateTime          @db.Date
+  time             String            // TIME format like "14:30"
+  duration         Int               // in minutes
+  number_of_people Int
+  payment_method   PaymentMethod
+  payment_status   PaymentStatus     @default(pending)
+  status           ReservationStatus @default(pending)
+  qr_code          String            @unique
+  notes            String?
+  created_at       DateTime          @default(now())
+  updated_at       DateTime          @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  business     Business      @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([user_id])
+  @@index([business_id])
+  @@index([date])
+  @@index([status])
+  @@index([qr_code])
+  @@map("reservations")
+}
+
+// ============================================
+// ORDER MODELS
+// ============================================
+
+model Order {
+  id              String        @id @default(uuid())
+  order_number    String        @unique
+  user_id         String
+  driver_id       String?
+  address_id      String?
+  order_type      OrderType
+  payment_method  PaymentMethod
+  payment_status  PaymentStatus @default(pending)
+  status          OrderStatus   @default(pending)
+  delivery_address Json?        // JSONB for flexible address structure
+  total_amount    Decimal       @db.Decimal(10, 2)
+  discount_amount Decimal       @default(0) @db.Decimal(10, 2)
+  platform_fee    Decimal       @default(0) @db.Decimal(10, 2)
+  delivery_fee    Decimal       @default(0) @db.Decimal(10, 2)
+  final_amount    Decimal       @db.Decimal(10, 2)
+  qr_code         String?
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  driver       Driver?       @relation(fields: [driver_id], references: [id], onDelete: SetNull)
+  address      Address?      @relation(fields: [address_id], references: [id], onDelete: SetNull)
+  order_items  OrderItem[]
+  transactions Transaction[]
+
+  @@index([user_id])
+  @@index([driver_id])
+  @@index([order_number])
+  @@index([status])
+  @@index([created_at])
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  order_id    String
+  business_id String
+  product_id  String
+  quantity    Int
+  unit_price  Decimal  @db.Decimal(10, 2)
+  total_price Decimal  @db.Decimal(10, 2)
+  preferences Json?    // JSONB for size, extras, etc.
+  is_available Boolean @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  order    Order    @relation(fields: [order_id], references: [id], onDelete: Cascade)
+  business Business @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@index([order_id])
+  @@index([business_id])
+  @@index([product_id])
+  @@map("order_items")
+}
+
+// ============================================
+// TRANSACTION MODELS
+// ============================================
+
+model Transaction {
+  id              String            @id @default(uuid())
+  user_id         String?
+  business_id     String?
+  driver_id       String?
+  cashier_id      String?
+  transaction_type TransactionType
+  reference_type  ReferenceType
+  reference_id    String
+  // Separate FK fields for polymorphic relations
+  reservation_id  String?
+  order_id        String?
+  
+  amount          Decimal           @db.Decimal(10, 2)
+  platform_fee    Decimal           @default(0) @db.Decimal(10, 2)
+  discount_amount Decimal           @default(0) @db.Decimal(10, 2)
+  payment_method  PaymentMethod
+  status          TransactionStatus @default(pending)
+  description     String?
+  created_at      DateTime          @default(now())
+  updated_at      DateTime          @updatedAt
+
+  // Relations
+  user        User?        @relation("UserTransactions", fields: [user_id], references: [id], onDelete: SetNull)
+  business    Business?    @relation("BusinessTransactions", fields: [business_id], references: [id], onDelete: SetNull)
+  driver      Driver?      @relation("DriverTransactions", fields: [driver_id], references: [id], onDelete: SetNull)
+  cashier     Cashier?     @relation("CashierTransactions", fields: [cashier_id], references: [id], onDelete: SetNull)
+  reservation Reservation? @relation(fields: [reservation_id], references: [id], onDelete: Cascade)
+  order       Order?       @relation(fields: [order_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([business_id])
+  @@index([driver_id])
+  @@index([cashier_id])
+  @@index([transaction_type])
+  @@index([reference_type, reference_id])
+  @@index([status])
+  @@index([created_at])
+  @@map("transactions")
+}
+
+// ============================================
+// QR CODE MODELS
+// ============================================
+
+model QRCode {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  type        String   // 'payment', 'discount', 'reservation', 'order'
+  user_id     String?
+  business_id String?
+  cashier_id  String?
+  reference_id String?
+  data        Json?    // JSONB for flexible QR data
+  expires_at  DateTime?
+  is_used     Boolean  @default(false)
+  used_at     DateTime?
+  created_at  DateTime @default(now())
+
+  // Relations
+  cashier Cashier? @relation(fields: [cashier_id], references: [id], onDelete: SetNull)
+
+  @@index([code])
+  @@index([type])
+  @@index([user_id])
+  @@index([business_id])
+  @@index([expires_at])
+  @@map("qr_codes")
+}
+
+// ============================================
+// RATING MODELS
+// ============================================
+
+model Rating {
+  id          String   @id @default(uuid())
+  user_id     String
+  business_id String?
+  driver_id   String?
+  order_id    String?
+  reservation_id String?
+  rating      Int      // 1-5 stars
+  comment     String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  user     User      @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  business Business? @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  driver   Driver?   @relation(fields: [driver_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([business_id])
+  @@index([driver_id])
+  @@index([rating])
+  @@index([created_at])
+  @@map("ratings")
+}
+
+// ============================================
+// NOTIFICATION MODELS
+// ============================================
+
+model Notification {
+  id          String   @id @default(uuid())
+  user_id     String?
+  business_id String?
+  driver_id   String?
+  type        String   // 'booking', 'order', 'payment', 'system', etc.
+  title       String
+  message     String
+  data        Json?    // JSONB for additional notification data
+  is_read     Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  // Relations
+  user     User?     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  business Business? @relation(fields: [business_id], references: [id], onDelete: Cascade)
+  driver   Driver?   @relation(fields: [driver_id], references: [id], onDelete: Cascade)
+
+  @@index([user_id])
+  @@index([business_id])
+  @@index([driver_id])
+  @@index([is_read])
+  @@index([created_at])
+  @@map("notifications")
+}
+
+// ============================================
+// SUBSCRIPTION MODELS
+// ============================================
+
+model Subscription {
+  id         String   @id @default(uuid())
+  user_id    String
+  app_type   AppType
+  start_date DateTime @db.Date
+  end_date   DateTime @db.Date
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@index([user_id])
+  @@index([app_type])
+  @@index([is_active])
+  @@map("subscriptions")
+}
