@@ -61,6 +61,7 @@ app.get('/health', (req, res) => {
       payments: '/api/payments',
       qr: '/api/qr',
       ratings: '/api/ratings',
+      admin: '/api/admin',
       docs: '/api-docs'
     }
   });
@@ -77,6 +78,9 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/ratings', ratingRoutes);
+
+// Admin Dashboard routes
+app.use('/api/admin', adminRoutes);
 
 // Setup Swagger documentation (before 404 handler)
 setupSwagger(app);
