@@ -20,13 +20,12 @@ exports.login = async (req, res) => {
             });
         }
 
-        // Find admin in User table (assuming shared table with Role)
-        // Or Admin table
-        const user = await prisma.user.findUnique({
+        // Find admin in Admin table
+        const user = await prisma.admin.findUnique({
             where: { email }
         });
 
-        if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') || !(await bcrypt.compare(password, user.password))) {
+        if (!user || !(await bcrypt.compare(password, user.password_hash))) {
             return res.status(401).json({
                 success: false,
                 message: 'Incorrect email or password'
@@ -36,7 +35,7 @@ exports.login = async (req, res) => {
         const token = signToken(user.id);
 
         // Remove password from output
-        user.password = undefined;
+        user.password_hash = undefined;
 
         res.status(200).json({
             success: true,

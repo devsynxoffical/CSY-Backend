@@ -18,36 +18,27 @@ exports.protectAdmin = async (req, res, next) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Check if admin still exists
-        // Assuming you have an Admin model, or utilizing User model with role
-        // For this implementation, we'll assume a 'User' model with role 'ADMIN' or specific Admin model
-        // Let's assume User model with role for now to be safe, or separate Admin table if created
-
-        // Check for Admin in User table (if using single table inheritance)
-        const currentUser = await prisma.user.findUnique({
+        // Check for Admin in Admin table
+        const currentAdmin = await prisma.admin.findUnique({
             where: { id: decoded.id }
         });
 
-        // Alternatively check separate Admin table if it exists
-        // const currentAdmin = await prisma.admin.findUnique({ where: { id: decoded.id } });
-
-        if (!currentUser) {
+        if (!currentAdmin) {
             return res.status(401).json({
                 success: false,
                 message: 'The user belonging to this token does not exist'
             });
         }
 
-        // specific role check if needed
-        if (currentUser.role !== 'ADMIN' && currentUser.role !== 'SUPER_ADMIN') {
-            // fallback if role isn't distinct in token
-            return res.status(403).json({
+        // Check if admin is active
+        if (!currentAdmin.is_active) {
+            return res.status(401).json({
                 success: false,
-                message: 'Access restricted to admins only'
+                message: 'This admin account is deactivated.'
             });
         }
 
-        req.user = currentUser;
+        req.user = currentAdmin;
         next();
     } catch (error) {
         return res.status(401).json({
