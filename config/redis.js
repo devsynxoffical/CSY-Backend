@@ -2,32 +2,33 @@ const redis = require('redis');
 
 // Redis Configuration
 const redisConfig = {
-  host: process.env.REDIS_HOST || '127.0.0.1',
-  port: process.env.REDIS_PORT || 6379,
+  url: process.env.REDIS_URL, // Auto-detect Railway/Url connection string
+  socket: {
+    host: process.env.REDIS_HOST || '127.0.0.1',
+    port: process.env.REDIS_PORT || 6379,
+    reconnectStrategy: (retries) => {
+      if (retries > 10) {
+        console.error('❌ Redis retry attempts exhausted');
+        return new Error('Retry time exhausted');
+      }
+      return Math.min(retries * 100, 3000);
+    },
+    // Required for some Redis services requiring TLS
+    tls: process.env.REDIS_TLS === 'true' || (process.env.REDIS_URL && process.env.REDIS_URL.startsWith('rediss://'))
+  },
   password: process.env.REDIS_PASSWORD || undefined,
-  db: process.env.REDIS_DB || 0,
-  retry_delay_on_failover: 100,
-  maxRetriesPerRequest: 3,
-  lazyConnect: true,
-  retry_strategy: (options) => {
-    if (process.env.NODE_ENV === 'development') {
-      return undefined; // Stop retrying immediately in dev
-    }
-    if (options.error && options.error.code === 'ECONNREFUSED') {
-      console.error('❌ Redis server refused connection');
-      return new Error('Redis server refused connection');
-    }
-    if (options.total_retry_time > 1000 * 60 * 60) {
-      console.error('❌ Redis retry time exhausted');
-      return new Error('Retry time exhausted');
-    }
-    if (options.attempt > 10) {
-      console.error('❌ Redis retry attempts exhausted');
-      return undefined;
-    }
-    return Math.min(options.attempt * 100, 3000);
-  }
+  database: process.env.REDIS_DB || 0,
 };
+
+// If REDIS_URL is provided, simplify config because the URL contains everything
+if (process.env.REDIS_URL) {
+  // Reset other options as they conflict or are redundant with URL
+  delete redisConfig.socket;
+  delete redisConfig.password;
+  delete redisConfig.database;
+  // Keep just the URL
+  redisConfig.url = process.env.REDIS_URL;
+}
 
 let redisClient;
 let isRedisConnected = false;
