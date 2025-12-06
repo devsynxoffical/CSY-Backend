@@ -12,6 +12,14 @@ exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
+        if (!process.env.JWT_SECRET) {
+            console.error('CRITICAL: JWT_SECRET is not defined in environment variables');
+            return res.status(500).json({
+                success: false,
+                message: 'Server configuration error: JWT_SECRET missing'
+            });
+        }
+
         if (!email || !password) {
             return res.status(400).json({
                 success: false,
@@ -24,7 +32,15 @@ exports.login = async (req, res) => {
             where: { email }
         });
 
-        if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'Incorrect email or password'
+            });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password_hash);
+        if (!isMatch) {
             return res.status(401).json({
                 success: false,
                 message: 'Incorrect email or password'
@@ -44,7 +60,7 @@ exports.login = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error(error);
+        console.error('Login Error:', error);
         res.status(500).json({
             success: false,
             message: 'Login failed',
