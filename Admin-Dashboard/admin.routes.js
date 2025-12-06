@@ -43,6 +43,10 @@ router.get('/drivers', restrictTo('super_admin', 'support_admin'), adminControll
 router.get('/drivers/:id', restrictTo('super_admin', 'support_admin'), adminController.getDriverById);
 router.patch('/drivers/:id/status', restrictTo('super_admin'), adminController.updateDriverStatus); // Approve/Reject
 
+// Transaction Management
+router.get('/transactions', restrictTo('super_admin', 'support_admin'), adminController.getAllTransactions);
+router.get('/transactions/:id', restrictTo('super_admin', 'support_admin'), adminController.getTransactionById);
+
 // System
 router.get('/system/health', adminController.getSystemHealth);
 

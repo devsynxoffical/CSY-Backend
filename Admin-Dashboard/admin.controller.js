@@ -206,3 +206,59 @@ exports.getSystemHealth = (req, res) => {
 // Analytics placeholders (You can implement logic here later)
 exports.getRevenueChartData = (req, res) => res.json({ success: true, data: [] });
 exports.getUserGrowthData = (req, res) => res.json({ success: true, data: [] });
+
+// --- Transactions ---
+exports.getAllTransactions = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const { type, status, paymentMethod } = req.query;
+        const where = {};
+        if (type && type !== 'all') where.transaction_type = type;
+        if (status && status !== 'all') where.status = status;
+        if (paymentMethod && paymentMethod !== 'all') where.payment_method = paymentMethod;
+
+        const transactions = await prisma.transaction.findMany({
+            where,
+            skip,
+            take: limit,
+            orderBy: { created_at: 'desc' },
+            include: {
+                user: { select: { full_name: true, email: true } },
+                business: { select: { business_name: true } },
+                driver: { select: { full_name: true } }
+            }
+        });
+        const total = await prisma.transaction.count({ where });
+
+        res.status(200).json({
+            success: true,
+            count: transactions.length,
+            total,
+            data: transactions
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
+
+exports.getTransactionById = async (req, res) => {
+    try {
+        const transaction = await prisma.transaction.findUnique({
+            where: { id: req.params.id },
+            include: {
+                user: true,
+                business: true,
+                driver: true,
+                order: true,
+                reservation: true
+            }
+        });
+        if (!transaction) return res.status(404).json({ success: false, message: 'Transaction not found' });
+        res.status(200).json({ success: true, data: transaction });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};
