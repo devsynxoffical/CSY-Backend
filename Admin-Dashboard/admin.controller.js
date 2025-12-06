@@ -274,3 +274,47 @@ exports.getTransactionById = async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 };
+
+// --- Subscriptions (Mapped from Businesses) ---
+exports.getAllSubscriptions = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const businesses = await prisma.business.findMany({
+            skip,
+            take: limit,
+            orderBy: { created_at: 'desc' },
+            select: {
+                id: true,
+                business_name: true,
+                app_type: true,
+                is_active: true,
+                created_at: true
+            }
+        });
+        const total = await prisma.business.count();
+
+        // Map to Subscription format
+        const subscriptions = businesses.map(b => ({
+            id: b.id,
+            businessName: b.business_name,
+            plan: b.app_type ? b.app_type.replace(/_/g, ' ').toUpperCase() : 'STANDARD',
+            status: b.is_active ? 'active' : 'cancelled',
+            startDate: b.created_at,
+            endDate: new Date(new Date(b.created_at).setFullYear(new Date(b.created_at).getFullYear() + 1)), // Mock 1 year
+            amount: b.app_type?.includes('go') ? 199 : 99, // Mock amount
+            autoRenew: true
+        }));
+
+        res.status(200).json({
+            success: true,
+            count: subscriptions.length,
+            total,
+            data: subscriptions
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+};

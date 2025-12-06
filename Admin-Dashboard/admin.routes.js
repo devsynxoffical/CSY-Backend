@@ -48,6 +48,9 @@ router.patch('/drivers/:id/status', restrictTo('super_admin'), adminController.u
 router.get('/transactions', restrictTo('super_admin', 'support_admin'), adminController.getAllTransactions);
 router.get('/transactions/:id', restrictTo('super_admin', 'support_admin'), adminController.getTransactionById);
 
+// Subscriptions Management
+router.get('/subscriptions', restrictTo('super_admin'), adminController.getAllSubscriptions);
+
 // System
 
 
