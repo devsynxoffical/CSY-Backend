@@ -193,13 +193,26 @@ exports.updateDriverStatus = async (req, res) => {
     }
 };
 
-exports.getSystemHealth = (req, res) => {
-    res.status(200).json({
-        success: true,
-        status: 'UP',
-        timestamp: new Date(),
-        uptime: process.uptime()
-    });
+exports.getSystemHealth = async (req, res) => {
+    try {
+        await prisma.$queryRaw`SELECT 1`;
+        res.status(200).json({
+            success: true,
+            status: 'UP',
+            database: 'Connected',
+            timestamp: new Date(),
+            uptime: process.uptime()
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            status: 'DOWN',
+            database: 'Disconnected',
+            error: error.message,
+            timestamp: new Date(),
+            uptime: process.uptime()
+        });
+    }
 };
 
 // Analytics placeholders (You can implement logic here later)

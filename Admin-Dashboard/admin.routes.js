@@ -8,6 +8,7 @@ const { protectAdmin, restrictTo } = require('./admin.middleware');
 router.post('/login', adminAuthController.login);
 // Note: Register is manually handled/seeded for security, or enable temporarily
 // router.post('/register', adminAuthController.register);
+router.get('/system/health', adminController.getSystemHealth);
 
 // --- Protected Routes ---
 router.use(protectAdmin);
@@ -48,6 +49,6 @@ router.get('/transactions', restrictTo('super_admin', 'support_admin'), adminCon
 router.get('/transactions/:id', restrictTo('super_admin', 'support_admin'), adminController.getTransactionById);
 
 // System
-router.get('/system/health', adminController.getSystemHealth);
+
 
 module.exports = router;
