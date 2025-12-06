@@ -28,7 +28,23 @@ const PORT = process.env.PORT || 3119;
 
 // Middleware setup
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3119',
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      process.env.CORS_ORIGIN,
+      'http://localhost:3119', // Backend local
+      'http://localhost:5173', // Vite local
+      'http://localhost:3000', // React local
+    ].filter(Boolean); // Remove empty strings if env var is missing
+
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
