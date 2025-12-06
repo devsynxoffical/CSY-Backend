@@ -8,18 +8,17 @@ const { connectRedis } = require('./config/redis');
 const { setupSwagger } = require('./config/swagger');
 
 // Import routes
-const {
-  authRoutes,
-  userRoutes,
-  businessRoutes,
-  driverRoutes,
-  cashierRoutes,
-  reservationRoutes,
-  orderRoutes,
-  paymentRoutes,
-  qrRoutes,
-  ratingRoutes
-} = require('./routes');
+const authRoutes = require('./routes/auth.routes');
+const userRoutes = require('./routes/user.routes');
+const businessRoutes = require('./routes/business.routes');
+const driverRoutes = require('./routes/driver.routes');
+const cashierRoutes = require('./routes/cashier.routes');
+const reservationRoutes = require('./routes/reservation.routes');
+const orderRoutes = require('./routes/order.routes');
+const paymentRoutes = require('./routes/payment.routes');
+const qrRoutes = require('./routes/qr.routes');
+const ratingRoutes = require('./routes/rating.routes');
+const adminRoutes = require('./Admin-Dashboard/admin.routes');
 
 // Import middlewares
 const { errorHandler, requestLogger } = require('./middlewares');
