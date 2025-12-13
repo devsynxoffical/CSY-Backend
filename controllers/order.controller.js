@@ -3,7 +3,7 @@ const CacheService = require('../services/cache.service');
 const { paymentService, notificationService, qrService, mapsService } = require('../services');
 const { logger } = require('../utils');
 const { SUCCESS_MESSAGES, ERROR_MESSAGES, VALIDATION_RULES } = require('../config/constants');
-const { generateOrderNumber } = require('../utils');
+const { generateOrderNumber, calculatePlatformFee, calculatePartnerDiscount, calculateDeliveryFee } = require('../utils');
 
 /**
  * Order Controller - Handles order creation, management and tracking operations
@@ -118,9 +118,13 @@ class OrderController {
         });
       }
 
-      // Get business info for the first item (assuming single business order for now)
-      const business = await prisma.business.findUnique({ where: { id: orderItems[0].business_id } });
-      if (!business) {
+      // Get business info (handle multi-establishment)
+      const distinctBusinessIds = [...new Set(orderItems.map(item => item.business_id))];
+      const businesses = await prisma.business.findMany({
+        where: { id: { in: distinctBusinessIds } }
+      });
+
+      if (businesses.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Business not found',
@@ -128,18 +132,63 @@ class OrderController {
         });
       }
 
-      // Calculate fees
-      platformFee = totalAmount * 0.05; // 5% platform fee
-      deliveryFee = order_type === 'delivery' ? 15 : 0; // Fixed delivery fee
+      // Use the first business as primary for distance/address logic
+      const business = businesses[0];
 
-      // Apply coupon discount if provided
+      // Check for active "CoreSY Go" subscription
+      const activeSubscription = await prisma.subscription.findFirst({
+        where: {
+          user_id: userId,
+          is_active: true,
+          end_date: { gte: new Date() },
+          app_type: { in: ['go', 'pass_go', 'care_go'] }
+        }
+      });
+
+      // Calculate taxes and fees
       let discountAmount = 0;
-      if (coupon_code) {
-        // Implement coupon validation logic here
-        // For now, skip coupon processing
+
+      // Distance Logic
+      let distance = 5; // Default fallback
+      if (business && business.latitude && business.longitude && delivery_address && delivery_address.latitude && delivery_address.longitude) {
+        try {
+          distance = await mapsService.calculateDistance(
+            { lat: Number(business.latitude), lng: Number(business.longitude) },
+            { lat: Number(delivery_address.latitude), lng: Number(delivery_address.longitude) }
+          );
+        } catch (e) {
+          logger.warn('Distance calculation error', e);
+        }
       }
 
-      const finalAmount = totalAmount + platformFee + deliveryFee - discountAmount;
+      // Determine Base Delivery Fee (Dynamic)
+      if (order_type === 'delivery') {
+        // Base 15 EGP (approx 1500 SYP). Plus 15 EGP per extra km beyond 3km.
+        deliveryFee = 15;
+        if (distance > 3) {
+          deliveryFee += Math.ceil(distance - 3) * 15;
+        }
+
+        // Multi-Establishment Surcharge
+        const distinctBusinessIds = [...new Set(orderItems.map(item => item.business_id))];
+        if (distinctBusinessIds.length > 1) {
+          // Add 50 EGP for each additional establishment
+          deliveryFee += (distinctBusinessIds.length - 1) * 50;
+        }
+      }
+
+      // Apply Logic: CoreSY Go vs Standard
+      if (activeSubscription && distance <= 3 && order_type === 'delivery') {
+        deliveryFee = 0;
+        discountAmount = 0; // Free delivery exception
+      } else {
+        discountAmount = calculatePartnerDiscount(totalAmount);
+      }
+
+      // Platform Fee (2%) - Calculated on (Subtotal - Discount)
+      platformFee = calculatePlatformFee(totalAmount - discountAmount);
+
+      const finalAmount = totalAmount - discountAmount + deliveryFee + platformFee;
 
       // Generate order number
       const orderNumber = await this.generateOrderNumber();
@@ -177,16 +226,18 @@ class OrderController {
         // TODO: Replace with prisma update - await order.save();
       }
 
-      // Send notification to business
+      // Send notification to business(es)
       try {
-        await notificationService.sendNotification(
-          business.owner_email,
-          'New Order Received',
-          `You have received a new ${order_type} order #${orderNumber}`,
-          { orderId: order.id, type: 'new_order' }
-        );
+        for (const biz of businesses) {
+          await notificationService.sendNotification(
+            biz.owner_email,
+            'New Order Received',
+            `You have received a new ${order_type} order #${orderNumber}`,
+            { orderId: order.id, type: 'new_order' }
+          );
+        }
       } catch (notificationError) {
-        logger.error('Failed to send order notification to business', {
+        logger.error('Failed to send order notification to business(es)', {
           orderId: order.id,
           error: notificationError.message
         });

@@ -10,6 +10,15 @@ const calculatePlatformFee = (subtotal) => {
 };
 
 /**
+ * Calculate partner discount
+ * @param {number} subtotal - Order subtotal
+ * @returns {number} Discount amount
+ */
+const calculatePartnerDiscount = (subtotal) => {
+  return Math.round(subtotal * FEES.PARTNER_DISCOUNT_PERCENTAGE);
+};
+
+/**
  * Calculate delivery fee based on distance
  * @param {number} distanceKm - Distance in kilometers
  * @param {number} baseFee - Base delivery fee (optional, uses default)
@@ -271,6 +280,7 @@ const calculateCancellationFee = (orderStatus, orderTotal, cancellationFeePercen
 
 module.exports = {
   calculatePlatformFee,
+  calculatePartnerDiscount,
   calculateDeliveryFee,
   calculateDriverEarnings,
   calculateOrderTotals,

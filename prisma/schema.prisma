@@ -352,6 +352,43 @@ model Product {
   @@map("products")
 }
 
+model Category {
+  id          String   @id @default(uuid())
+  business_id String
+  name        String
+  image_url   String?
+  order       Int      @default(0)
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  // Relations
+  business Business @relation(fields: [business_id], references: [id], onDelete: Cascade)
+
+  @@index([business_id])
+  @@map("categories")
+}
+
+model Offer {
+  id                  String   @id @default(uuid())
+  business_id         String
+  title               String
+  description         String?
+  image_url           String?
+  discount_percentage Decimal  @db.Decimal(5, 2)
+  start_date          DateTime
+  end_date            DateTime
+  is_active           Boolean  @default(true)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  // Relations
+  business Business @relation(fields: [business_id], references: [id], onDelete: Cascade)
+
+  @@index([business_id])
+  @@map("offers")
+}
+
 // ============================================
 // DRIVER MODELS
 // ============================================
@@ -408,6 +445,9 @@ model Reservation {
   status           ReservationStatus @default(pending)
   qr_code          String            @unique
   notes            String?
+  total_amount     Decimal           @default(0) @db.Decimal(10, 2)
+  discount_amount  Decimal           @default(0) @db.Decimal(10, 2)
+  final_amount     Decimal           @default(0) @db.Decimal(10, 2)
   created_at       DateTime          @default(now())
   updated_at       DateTime          @updatedAt
 

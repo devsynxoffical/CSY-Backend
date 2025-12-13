@@ -24,7 +24,8 @@ class ReservationController {
         number_of_people,
         payment_method,
         notes,
-        specialty
+        specialty,
+        amount // Get amount from request (optional, default 0 if not provided)
       } = req.body;
 
       // Validate business exists and accepts reservations
@@ -64,6 +65,12 @@ class ReservationController {
       const endTime = new Date(reservationDate);
       endTime.setMinutes(endTime.getMinutes() + duration);
 
+      // Financial Logic: Partner Discount (10%)
+      const totalAmount = amount ? Number(amount) : 0;
+      // Calculate discount (10%)
+      const discountAmount = totalAmount > 0 ? Math.round(totalAmount * 0.10) : 0;
+      const finalAmount = totalAmount - discountAmount;
+
       // Create reservation
       const reservation = await prisma.reservation.create({
         data: {
@@ -78,7 +85,10 @@ class ReservationController {
           payment_method,
           payment_status: 'pending',
           status: 'pending',
-          notes
+          notes,
+          total_amount: totalAmount,
+          discount_amount: discountAmount,
+          final_amount: finalAmount
         }
       });
 

@@ -1,0 +1,132 @@
+CSY-BACKEND MASTER DOCUMENTATION
+================================================================================
+
+1. EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+This document provides a comprehensive technical overview of the CSY-Backend 
+system, reflecting the latest architectural updates, financial logic 
+corrections, and feature additions as of December 2025.
+
+The system facilitates a multi-sided marketplace connecting Users (Customers), 
+Businesses (Vendors), and Drivers (Logistics), managed via an Admin Panel.
+
+
+2. CORE ARCHITECTURE
+--------------------------------------------------------------------------------
+
+2.1 TECH STACK
+   - Runtime: Node.js (v18+)
+   - Framework: Express.js
+   - Database: PostgreSQL (Relation Management via Prisma ORM)
+   - Caching: Redis (Session & Data Caching)
+   - Storage: AWS S3 (Media Assets)
+   - External APIs: Google Maps (Geocoding/Distance), OpenAI/Anthropic (AI)
+
+2.2 DIRECTORY STRUCTURE
+   - controllers/: Request handlers (Order, User, Business, etc.)
+   - services/: Encapsulated business logic (Maps, AI, Payment)
+   - routes/: API endpoint definitions
+   - prisma/: Database schema and migration history
+   - utils/: Shared helper functions (Fee calculations, formatting)
+   - config/: System constants and environment variables
+
+
+3. FINANCIAL SYSTEM LOGIC (NEW)
+--------------------------------------------------------------------------------
+The financial model has been updated to reflect the new business requirements. 
+Use this section as the definitive reference for how money flows.
+
+3.1 PLATFORM FEES
+   - Rule: The platform charges a fixed percentage on the subtotal of orders.
+   - Rate: 2% (Fixed constant PLATFORM_FEE_PERCENTAGE = 0.02)
+   - Calculation: Subtotal x 0.02
+   - Source: utils/calculateFees.js
+
+3.2 PARTNER DISCOUNTS
+   - Rule: Orders automatically apply a partner discount to incentivize usage.
+   - Rate: 10% (Fixed constant PARTNER_DISCOUNT_PERCENTAGE = 0.10)
+   - Calculation: Subtotal x 0.10
+   - Application: Deducted from the User's payable amount.
+
+3.3 DYNAMIC DELIVERY PRICING
+   - Rule: Delivery fees are calculated based on the distance between the 
+     Business and the Customer.
+   - Base Fee: 15 EGP (Covers first 3km)
+   - Distance Surcharge: +15 EGP per each additional km beyond 3km.
+   
+   [ Exception: CoreSY Go Subscription ]
+   If User has an active subscription (go, pass_go, care_go) AND Distance is 
+   less than or equal to 3km, then Delivery Fee is 0 EGP (Free Delivery).
+
+3.4 MULTI-ESTABLISHMENT ORDERS
+   - Rule: Orders containing items from multiple businesses incur a surcharge.
+   - Surcharge: +50 EGP per additional business.
+   - Example: Order from 2 businesses = Base Delivery + 50 EGP.
+
+
+4. FEATURE IMPLEMENTATION DETAILS
+--------------------------------------------------------------------------------
+
+4.1 ORDER PROCESSING (order.controller.js)
+   1. Validate Items & Stock.
+   2. Calculate Distance via MapsService (Google Maps API).
+   3. Calculate Fees (Delivery, Platform, Discount).
+   4. Check Subscription status for CoreSY Go benefits.
+   5. Handle Multi-establishment logic (Fee + Multiple Business Notifications).
+   6. Create Order & Transaction records in PostgreSQL.
+
+4.2 RESERVATION SYSTEM (reservation.controller.js)
+   1. Check availability.
+   2. Calculate Total Amount (if applicable).
+   3. Apply 10% Partner Discount logic to reservation cost.
+   4. Generate QR Code for check-in.
+
+4.3 AI SMART ASSISTANT (ai.controller.js)
+   - Purpose: Personalized recommendations and chat assistance.
+   - Endpoints:
+     a. GET /api/ai/recommendations: Fetch user-tailored suggestions.
+     b. POST /api/ai/chat: Natural language interface for queries.
+   - Integration: Powered by services/ai-assistant.service.js.
+
+
+5. DATABASE & SCHEMA
+--------------------------------------------------------------------------------
+
+5.1 CRITICAL MODELS (Prisma)
+   - User: Stores profile, wallet, and subscription status.
+   - Business: Stores location (latitude, longitude) for distance checks.
+   - Order: Tracks platform_fee, delivery_fee, and discount_amount.
+   - Reservation: Tracks booking details and newly added financial fields 
+     (total_amount, discount_amount).
+
+[ IMPORTANT NOTE ]
+The Reservation model was recently updated to include amount fields. You must 
+run database migration commands to sync these changes before deploying.
+
+
+6. SETUP & DEPLOYMENT
+--------------------------------------------------------------------------------
+
+6.1 ENVIRONMENT VARIABLES (.env)
+   Ensure the following are configured:
+   - DATABASE_URL: postgresql://user:pass@host:5432/db
+   - PLATFORM_FEE_PERCENTAGE: 2
+   - DISCOUNT_PERCENTAGE: 10
+   - GOOGLE_MAPS_API_KEY: (Your Key)
+   - OPENAI_API_KEY: (Your Key)
+
+6.2 QUICK COMMANDS
+   - Install Dependencies: npm install
+   - Database Push (Sync Schema): npx prisma db push
+   - Seed Data (Populate Dummy Data): npx prisma db seed
+   - Start Development Server: npm run dev
+
+
+7. VERSION HISTORY
+--------------------------------------------------------------------------------
+   - v1.0: Initial Release
+   - v1.1 (Current):
+     - Updated Platform Fee to 2%.
+     - Added Dynamic Delivery (Maps integration).
+     - Added AI Assistant backbone.
+     - Added Multi-Establishment support.

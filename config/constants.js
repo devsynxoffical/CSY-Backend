@@ -155,7 +155,8 @@ const SUBSCRIPTION_STATUS = [
 // Fees and Rates
 const FEES = {
   // Platform fees
-  PLATFORM_FEE_PERCENTAGE: 0.05, // 5%
+  PLATFORM_FEE_PERCENTAGE: 0.02, // 2%
+  PARTNER_DISCOUNT_PERCENTAGE: 0.10, // 10% automatic discount
   DELIVERY_FEE_BASE: 5000, // 50 EGP in piastres
   DELIVERY_FEE_PER_KM: 1000, // 10 EGP per km in piastres
 

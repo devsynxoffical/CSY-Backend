@@ -1,0 +1,143 @@
+CORESY PLATFORM - TECHNICAL BACKEND SPECIFICATION
+================================================================================
+
+1. SYSTEM OVERVIEW
+--------------------------------------------------------------------------------
+The CoreSY Backend is a centralized, monolithic-style API architecture designed 
+to support three integrated mobile applications (Pass, Care, Go) and comprehensive 
+web portals for Businesses and Admins.
+
+   - Tech Stack: Node.js (LTS), Express.js Framework
+   - Database: PostgreSQL (Managed RDS) via Prisma ORM
+   - Caching: Redis (ElastiCache) for sessions and frequent data
+   - Storage: AWS S3 for media assets
+   - AI Engine: OpenAI/Anthropic integration for the Smart Assistant
+
+
+2. ARCHITECTURE & INFRASTRUCTURE (AWS)
+--------------------------------------------------------------------------------
+The infrastructure is designed for scalability and high availability, aligned 
+with the "Milestone 1" requirements.
+
+2.1 COMPUTE & NETWORKING
+   - Service: AWS Elastic Beanstalk (or ECS Fargate)
+   - Configuration: Auto-scaling enabled (CPU > 70% scales out)
+   - Load Balancer: Application Load Balancer (ALB) distributing traffic
+   - Security: VPC with Public/Private subnets; WAF enabled
+
+2.2 DATABASE & STORAGE
+   - Primary DB: AWS RDS for PostgreSQL (Multi-AZ enabled for recovery)
+   - Caching: AWS ElastiCache (Redis)
+   - Object Storage: AWS S3 (Standard class + CloudFront CDN)
+
+2.3 DEVOPS & CI/CD
+   - Pipeline: GitHub Actions / AWS CodePipeline
+   - Steps: Lint -> Test -> Build Container -> Deploy
+   - Monitoring: CloudWatch (Logs/Metrics), X-Ray (Tracing)
+
+
+3. DATABASE SCHEMA DESIGNS
+--------------------------------------------------------------------------------
+The database models support the unified account system requested.
+
+3.1 USERS (Unified Entity)
+   - Fields: id, pass_id (Governorate Code + Sequence), email, phone, 
+     password_hash, wallet_balance, points, subscription_status.
+   - Relation: One User has many Addresses, Orders, Reservations.
+   
+   [ Governorate Codes Implemented ]
+   DM (Damascus), HS (Homs), HM (Hama), LK (Latakia), etc.
+
+3.2 BUSINESSES (Partner Establishments)
+   - Fields: id, type (restaurant, clinic, etc.), app_type (pass, care, go), 
+     location (lat/long), working_hours, is_active.
+   - Integration: Supports "Cashier" accounts linked to the main business.
+
+3.3 FINANCIAL MODELS
+   - Transactions: Tracks every wallet movement (top-up, payment, refund).
+   - CoreSY Go/Pass Orders: Stores item details, fees, and split payments.
+   - Reservations: Stores booking metadata + financial requirements (fees).
+
+
+4. FINANCIAL LOGIC ENGINE
+--------------------------------------------------------------------------------
+The backend implements the specific fee and discount rules defined in the 
+Overview.
+
+4.1 DISCOUNT RULES
+   - Standard Subscriber Benefit: 10% OFF at all partner establishments.
+   - Implementation: The system calculates `Subtotal * 0.10` and deducts it 
+     from the user's final bill. This amount is recorded as "Discount Amount" 
+     and is deducted from the Establishment's receivable.
+
+4.2 PLATFORM FEES
+   - Rule: 2% Fee on every transaction.
+   - Calculation: `Transaction Amount * 0.02`.
+   - Accounting: Recorded as platform revenue in the Transaction ledger.
+
+4.3 DELIVERY PRICING (CoreSY Go)
+   - Base Radius: 0 - 3 KM.
+   - Base Price: Free for "Go" subscribers (within 3km), otherwise Standard Fee.
+   - Extra Distance Fee: +1,500 SYP (15 units) per KM beyond 3km.
+   - Multi-Establishment Surcharge: +5,000 SYP (50 units) per additional place.
+
+
+5. APPLICATION-SPECIFIC BACKEND LOGIC
+--------------------------------------------------------------------------------
+
+5.1 CORESY PASS (Entertainment & Dining)
+   - Reservations: 
+     - Backend verifies slot availability.
+     - Generates "Booking QR" (Cash) or "Payment QR" (Online).
+     - Cancellation: Logic allows free cancel up to 4 days prior.
+
+5.2 CORESY CARE (Medical & Beauty)
+   - Appointment Model: Specialized slots (Duration varying by service).
+   - Specialties: Filterable attributes (Internal, Dental, Dermatology).
+   - Logic: 10% discount applies to the medical bill or consultation fee.
+
+5.3 CORESY GO (Delivery)
+   - Multi-Cart System: Backend accepts items from different `business_ids` in 
+     a single `POST /api/orders` body.
+   - Routing: `MapsService` calculates total distance (Driver -> A -> B -> User).
+   - Driver Dispatch: "Available" drivers within radius receive socket alerts.
+
+
+6. SHARED FEATURE IMPLEMENTATION
+--------------------------------------------------------------------------------
+
+6.1 UNIFIED QR SYSTEM
+   - Endpoint: `POST /api/qr/generate`
+   - Data Payload: Tokenized string containing UserID + TransactionType.
+   - Validation: `POST /api/qr/scan` determines context (Discount, Payment, 
+     Check-in) and executes the relevant controller logic.
+
+6.2 SMART ASSISTANT (AI)
+   - Service: Integrated with OpenAI API.
+   - Context Awareness: Injects User Preferences + Location Data into prompts.
+   - Features: Suggests food/activities based on history; answers health queries.
+
+6.3 NOTIFICATIONS (Multi-Channel)
+   - Triggers: Order Status Change, Booking Reminder (24h/1h), Points Expiry.
+   - Channels: Push (FCM), In-App (Database), Email (SES).
+
+6.4 RATINGS & REVIEWS
+   - Entities: Business Rating, Product Rating, Driver Rating.
+   - Logic: Updates aggregate average (`rating_average`) after every review.
+
+
+7. SECURITY & COMPLIANCE
+--------------------------------------------------------------------------------
+   - Authentication: JWT (JSON Web Tokens) with Refresh Tokens.
+   - Encryption: At rest (RDS/S3 encryption) and in, transit (TLS/SSL).
+   - Role-Based Access Control (RBAC): Middleware enforces permissions for 
+     Admin, Business, Driver, and User routes.
+   - Data Safety: Soft-delete policies for critical records to prevent data loss.
+
+
+8. ADMIN DASHBOARD CAPABILITIES
+--------------------------------------------------------------------------------
+The backend exposes comprehensive endpoints for the Admin React Panel:
+   - User Management: Ban/Unban, View Wallet History.
+   - Financial Reconciliation: View Platform Fees vs. Establishment Receivables.
+   - Content Moderation: Manage global settings, banner images, and complaints.

@@ -249,6 +249,58 @@ router.get('/',
   businessController.getAllBusinesses
 );
 
+/**
+ * @swagger
+ * /api/business/{id}:
+ *   get:
+ *     summary: Get public business details
+ *     tags: [Business Management]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Business ID
+ *     responses:
+ *       200:
+ *         description: Business details retrieved
+ */
+router.get('/:id',
+  generalLimiter,
+  validateUUID,
+  businessController.getPublicBusinessProfile
+);
+
+/**
+ * @swagger
+ * /api/business/{id}/products:
+ *   get:
+ *     summary: Get business products (Public Menu)
+ *     tags: [Business Management]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Business ID
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Filter by category
+ *     responses:
+ *       200:
+ *         description: Products retrieved
+ */
+router.get('/:id/products',
+  generalLimiter,
+  validateUUID,
+  businessController.getBusinessProducts
+);
+
+
 // All routes below require business authentication
 router.use(authenticateBusiness);
 
@@ -1577,6 +1629,64 @@ router.get('/operations-log',
 router.get('/dashboard',
   generalLimiter,
   businessController.getDashboard
+);
+
+/**
+ * @swagger
+ * /api/business/categories:
+ *   post:
+ *     summary: Create category
+ *     tags: [Business Management]
+ */
+router.post('/categories',
+  generalLimiter,
+  businessController.createCategory
+);
+
+router.get('/categories',
+  generalLimiter,
+  businessController.getCategories
+);
+
+router.put('/categories/:id',
+  generalLimiter,
+  ...validateUUID,
+  businessController.updateCategory
+);
+
+router.delete('/categories/:id',
+  generalLimiter,
+  ...validateUUID,
+  businessController.deleteCategory
+);
+
+/**
+ * @swagger
+ * /api/business/offers:
+ *   post:
+ *     summary: Create offer
+ *     tags: [Business Management]
+ */
+router.post('/offers',
+  generalLimiter,
+  businessController.createOffer
+);
+
+router.get('/offers',
+  generalLimiter,
+  businessController.getOffers
+);
+
+router.put('/offers/:id',
+  generalLimiter,
+  ...validateUUID,
+  businessController.updateOffer
+);
+
+router.delete('/offers/:id',
+  generalLimiter,
+  ...validateUUID,
+  businessController.deleteOffer
 );
 
 /**

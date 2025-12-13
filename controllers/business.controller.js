@@ -319,6 +319,117 @@ CSY Pro Team`
   }
 
   /**
+   * Get public business profile
+   */
+  async getPublicBusinessProfile(req, res) {
+    try {
+      const { id } = req.params;
+
+      const business = await prisma.business.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          business_name: true,
+          business_type: true,
+          app_type: true,
+          address: true,
+          city: true,
+          governorate: true,
+          latitude: true,
+          longitude: true,
+          working_hours: true,
+          photos: true,
+          videos: true,
+          rating_average: true,
+          rating_count: true,
+          has_reservations: true,
+          has_delivery: true,
+          is_active: true
+        }
+      });
+
+      if (!business || !business.is_active) {
+        return res.status(404).json({
+          success: false,
+          message: 'Business not found',
+          error: ERROR_MESSAGES.BUSINESS_NOT_FOUND
+        });
+      }
+
+      const ratingsSummary = await prisma.rating.groupBy({
+        by: ['rating'],
+        where: { business_id: id },
+        _count: { rating: true }
+      });
+
+      res.json({
+        success: true,
+        message: 'Business profile retrieved successfully',
+        data: {
+          ...business,
+          ratings_breakdown: ratingsSummary
+        }
+      });
+    } catch (error) {
+      logger.error('Get public business profile failed', {
+        businessId: req.params.id,
+        error: error.message
+      });
+
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve business profile',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Get business products (Public)
+   */
+  async getBusinessProducts(req, res) {
+    try {
+      const { id } = req.params;
+      const { category, search } = req.query;
+
+      const whereClause = {
+        business_id: id,
+        is_active: true
+      };
+
+      if (category) whereClause.category = category;
+      if (search) {
+        whereClause.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } }
+        ];
+      }
+
+      const products = await prisma.product.findMany({
+        where: whereClause,
+        orderBy: { created_at: 'desc' }
+      });
+
+      res.json({
+        success: true,
+        message: 'products retrieved successfully',
+        data: products
+      });
+    } catch (error) {
+      logger.error('Get business products failed', {
+        businessId: req.params.id,
+        error: error.message
+      });
+
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve products',
+        error: error.message
+      });
+    }
+  }
+
+  /**
    * Get business profile
    */
   async getProfile(req, res) {
@@ -1123,6 +1234,13 @@ CSY Pro Team`
         error: error.message
       });
     }
+  }
+
+  /**
+   * Get business reservations (Alias for appointments)
+   */
+  async getReservations(req, res) {
+    return this.getAppointments(req, res);
   }
 
   /**
@@ -2463,6 +2581,209 @@ CSY Pro Team`
       total_products_sold: totalQuantity,
       total_product_revenue: totalRevenue
     };
+  }
+
+
+  /**
+   * Create category
+   */
+  async createCategory(req, res) {
+    try {
+      const businessId = req.business.id;
+      const { name, image_url, order } = req.body;
+
+      if (!name) {
+        return res.status(400).json({
+          success: false,
+          message: 'Category name is required',
+          error: 'Missing required field: name'
+        });
+      }
+
+      const category = await prisma.category.create({
+        data: {
+          business_id: businessId,
+          name,
+          image_url,
+          order: order || 0,
+          is_active: true
+        }
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Category created successfully',
+        data: category
+      });
+    } catch (error) {
+      logger.error('Create category failed', { businessId: req.business.id, error: error.message });
+      res.status(500).json({ success: false, message: 'Failed to create category', error: error.message });
+    }
+  }
+
+  /**
+   * Get business categories
+   */
+  async getCategories(req, res) {
+    try {
+      const businessId = req.business.id;
+      const categories = await prisma.category.findMany({
+        where: { business_id: businessId, is_active: true },
+        orderBy: { order: 'asc' }
+      });
+
+      res.json({
+        success: true,
+        message: 'Categories retrieved successfully',
+        data: categories
+      });
+    } catch (error) {
+      logger.error('Get categories failed', { businessId: req.business.id, error: error.message });
+      res.status(500).json({ success: false, message: 'Failed to retrieve categories', error: error.message });
+    }
+  }
+
+  /**
+   * Update category
+   */
+  async updateCategory(req, res) {
+    try {
+      const { id } = req.params;
+      const { name, image_url, order, is_active } = req.body;
+
+      const category = await prisma.category.update({
+        where: { id },
+        data: { name, image_url, order, is_active, updated_at: new Date() }
+      });
+
+      res.json({
+        success: true,
+        message: 'Category updated successfully',
+        data: category
+      });
+    } catch (error) {
+      logger.error('Update category failed', { categoryId: req.params.id, error: error.message });
+      res.status(500).json({ success: false, message: 'Failed to update category', error: error.message });
+    }
+  }
+
+  /**
+   * Delete category
+   */
+  async deleteCategory(req, res) {
+    try {
+      const { id } = req.params;
+      await prisma.category.delete({ where: { id } });
+      res.json({ success: true, message: 'Category deleted successfully' });
+    } catch (error) {
+      logger.error('Delete category failed', { categoryId: req.params.id, error: error.message });
+      res.status(500).json({ success: false, message: 'Failed to delete category', error: error.message });
+    }
+  }
+
+  /**
+   * Create offer
+   */
+  async createOffer(req, res) {
+    try {
+      const businessId = req.business.id;
+      const { title, description, image_url, discount_percentage, start_date, end_date } = req.body;
+
+      if (!title || !discount_percentage || !start_date || !end_date) {
+        return res.status(400).json({
+          success: false,
+          message: 'Missing required fields for offer',
+          error: 'title, discount_percentage, start_date, and end_date are required'
+        });
+      }
+
+      const offer = await prisma.offer.create({
+        data: {
+          business_id: businessId,
+          title,
+          description,
+          image_url,
+          discount_percentage,
+          start_date: new Date(start_date),
+          end_date: new Date(end_date),
+          is_active: true
+        }
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Offer created successfully',
+        data: offer
+      });
+    } catch (error) {
+      logger.error('Create offer failed', { businessId: req.business.id, error: error.message });
+      res.status(500).json({ success: false, message: 'Failed to create offer', error: error.message });
+    }
+  }
+
+  /**
+   * Get business offers
+   */
+  async getOffers(req, res) {
+    try {
+      const businessId = req.business.id;
+      const offers = await prisma.offer.findMany({
+        where: { business_id: businessId },
+        orderBy: { created_at: 'desc' }
+      });
+
+      res.json({
+        success: true,
+        message: 'Offers retrieved successfully',
+        data: offers
+      });
+    } catch (error) {
+      logger.error('Get offers failed', { businessId: req.business.id, error: error.message });
+      res.status(500).json({ success: false, message: 'Failed to retrieve offers', error: error.message });
+    }
+  }
+
+  /**
+   * Update offer
+   */
+  async updateOffer(req, res) {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      // Convert dates if present
+      if (updates.start_date) updates.start_date = new Date(updates.start_date);
+      if (updates.end_date) updates.end_date = new Date(updates.end_date);
+      updates.updated_at = new Date();
+
+      const offer = await prisma.offer.update({
+        where: { id },
+        data: updates
+      });
+
+      res.json({
+        success: true,
+        message: 'Offer updated successfully',
+        data: offer
+      });
+    } catch (error) {
+      logger.error('Update offer failed', { offerId: req.params.id, error: error.message });
+      res.status(500).json({ success: false, message: 'Failed to update offer', error: error.message });
+    }
+  }
+
+  /**
+   * Delete offer
+   */
+  async deleteOffer(req, res) {
+    try {
+      const { id } = req.params;
+      await prisma.offer.delete({ where: { id } });
+      res.json({ success: true, message: 'Offer deleted successfully' });
+    } catch (error) {
+      logger.error('Delete offer failed', { offerId: req.params.id, error: error.message });
+      res.status(500).json({ success: false, message: 'Failed to delete offer', error: error.message });
+    }
   }
 }
 
