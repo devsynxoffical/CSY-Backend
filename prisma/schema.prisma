@@ -253,6 +253,8 @@ model Business {
   ratings            Rating[]
   notifications      Notification[]
   cashier_operations CashierOperation[]
+  categories         Category[]
+  offers             Offer[]
 
   @@index([owner_email])
   @@index([business_type])
