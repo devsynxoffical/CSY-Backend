@@ -449,6 +449,29 @@ const validateRatingSubmission = [
   handleValidationErrors
 ];
 
+// OTP validation rules
+const validateSendOTP = [
+  body('phone')
+    .matches(VALIDATION_RULES.PHONE_REGEX)
+    .withMessage('Please provide a valid phone number'),
+
+  handleValidationErrors
+];
+
+const validateVerifyOTP = [
+  body('phone')
+    .matches(VALIDATION_RULES.PHONE_REGEX)
+    .withMessage('Please provide a valid phone number'),
+
+  body('otp')
+    .isString()
+    .isLength({ min: 6, max: 6 })
+    .matches(/^\d{6}$/)
+    .withMessage('OTP must be 6 digits'),
+
+  handleValidationErrors
+];
+
 // Query parameter validation
 const validatePagination = [
   query('page')
@@ -503,6 +526,8 @@ module.exports = {
   validateQRValidation,
   validateQRScan,
   validateRatingSubmission,
+  validateSendOTP,
+  validateVerifyOTP,
   validateObjectId,
   validateUUID,
   validatePagination,

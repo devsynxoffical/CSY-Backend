@@ -6,6 +6,8 @@ const authController = require('../controllers/auth.controller');
 const {
   validateUserRegistration,
   validateUserLogin,
+  validateSendOTP,
+  validateVerifyOTP,
   handleValidationErrors
 } = require('../middlewares');
 
@@ -382,6 +384,151 @@ router.post('/logout',
 router.post('/refresh',
   require('../middlewares').authenticate,
   authController.refreshToken
+);
+
+/**
+ * @swagger
+ * /api/auth/send-otp:
+ *   post:
+ *     summary: Send OTP to phone number
+ *     tags: [Authentication]
+ *     description: Send a 6-digit OTP code to the user's phone number via SMS
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - phone
+ *             properties:
+ *               phone:
+ *                 type: string
+ *                 pattern: '^\+?[0-9]{10,15}$'
+ *                 description: User's phone number
+ *                 example: "+201234567890"
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "OTP sent successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     phone:
+ *                       type: string
+ *                     sentAt:
+ *                       type: string
+ *                       format: date-time
+ *                     expiresIn:
+ *                       type: integer
+ *                       description: Expiration time in seconds
+ *                       example: 600
+ *       400:
+ *         description: Invalid phone number
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Failed to send OTP
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.post('/send-otp',
+  generalLimiter,
+  validateSendOTP,
+  authController.sendOTP
+);
+
+/**
+ * @swagger
+ * /api/auth/verify-otp:
+ *   post:
+ *     summary: Verify OTP code
+ *     tags: [Authentication]
+ *     description: Verify the OTP code sent to user's phone number. Accepts the fixed OTP code "123456" for testing.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - phone
+ *               - otp
+ *             properties:
+ *               phone:
+ *                 type: string
+ *                 pattern: '^\+?[0-9]{10,15}$'
+ *                 description: User's phone number
+ *                 example: "+201234567890"
+ *               otp:
+ *                 type: string
+ *                 pattern: '^[0-9]{6}$'
+ *                 description: 6-digit OTP code (or use "123456" for testing)
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: OTP verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "OTP verified successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     userId:
+ *                       type: string
+ *                     phone:
+ *                       type: string
+ *                     token:
+ *                       type: string
+ *                       description: JWT access token
+ *                     verifiedAt:
+ *                       type: string
+ *                       format: date-time
+ *       400:
+ *         description: Invalid OTP format
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: OTP verification failed
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.post('/verify-otp',
+  generalLimiter,
+  validateVerifyOTP,
+  authController.verifyOTP
 );
 
 module.exports = router;

@@ -622,8 +622,7 @@ class AuthController {
     try {
       const { phone, otp } = req.body;
 
-      // In production, verify against stored OTP
-      // For demo, accept any 6-digit OTP
+      // Validate OTP format
       if (!otp || otp.length !== 6 || !/^\d{6}$/.test(otp)) {
         return res.status(400).json({
           success: false,
@@ -645,10 +644,41 @@ class AuthController {
         });
       }
 
+      // Fixed OTP code for testing/development
+      const FIXED_OTP = '123456';
+      
+      // Check if OTP is the fixed code or verify against stored OTP
+      let isValidOTP = false;
+      
+      if (otp === FIXED_OTP) {
+        // Accept fixed OTP code for testing
+        isValidOTP = true;
+        logger.info('Fixed OTP code used', { phone, userId: user.id });
+      } else {
+        // In production, verify against stored OTP from cache/database
+        // For now, we'll check if OTP exists in cache (if implemented)
+        // This is a placeholder for production OTP verification
+        // TODO: Implement proper OTP verification against stored OTP
+        // const storedOTP = await CacheService.getOTP(phone);
+        // isValidOTP = storedOTP && storedOTP === otp;
+        
+        // For demo purposes, accept any 6-digit OTP (remove this in production)
+        isValidOTP = true;
+        logger.info('OTP verified (demo mode)', { phone, userId: user.id });
+      }
+
+      if (!isValidOTP) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid OTP',
+          error: 'The OTP code you entered is incorrect. Please try again or use the fixed code 123456 for testing.'
+        });
+      }
+
       // Generate token for verified user
       const token = generateToken(user.id);
 
-      logger.info('OTP verified successfully', { userId: user.id, phone });
+      logger.info('OTP verified successfully', { userId: user.id, phone, usedFixedOTP: otp === FIXED_OTP });
 
       res.json({
         success: true,
