@@ -12,6 +12,7 @@ const paymentRoutes = require('./payment.routes');
 const qrRoutes = require('./qr.routes');
 const ratingRoutes = require('./rating.routes');
 const aiRoutes = require('./ai.routes');
+const cityRoutes = require('./city.routes');
 
 module.exports = {
   authRoutes,
@@ -24,5 +25,6 @@ module.exports = {
   paymentRoutes,
   qrRoutes,
   ratingRoutes,
-  aiRoutes
+  aiRoutes,
+  cityRoutes
 };

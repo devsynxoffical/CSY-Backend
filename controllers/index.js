@@ -11,6 +11,8 @@ const orderController = require('./order.controller');
 const paymentController = require('./payment.controller');
 const qrController = require('./qr.controller');
 const ratingController = require('./rating.controller');
+const aiController = require('./ai.controller');
+const cityController = require('./city.controller');
 
 module.exports = {
   authController,
@@ -22,5 +24,7 @@ module.exports = {
   orderController,
   paymentController,
   qrController,
-  ratingController
+  ratingController,
+  aiController,
+  cityController
 };

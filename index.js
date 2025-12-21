@@ -18,6 +18,8 @@ const orderRoutes = require('./routes/order.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const qrRoutes = require('./routes/qr.routes');
 const ratingRoutes = require('./routes/rating.routes');
+const aiRoutes = require('./routes/ai.routes');
+const cityRoutes = require('./routes/city.routes');
 const adminRoutes = require('./Admin-Dashboard/admin.routes');
 
 // Import middlewares
@@ -76,6 +78,8 @@ app.get('/health', (req, res) => {
       payments: '/api/payments',
       qr: '/api/qr',
       ratings: '/api/ratings',
+      ai: '/api/ai',
+      cities: '/api/cities',
       admin: '/api/admin',
       docs: '/api-docs'
     }
@@ -93,6 +97,8 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/qr', qrRoutes);
 app.use('/api/ratings', ratingRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/cities', cityRoutes);
 
 // Admin Dashboard routes
 app.use('/api/admin', adminRoutes);
