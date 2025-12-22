@@ -7,6 +7,8 @@ const {
   authenticate,
   authenticateDriver,
   validateUserUpdate,
+  validateDriverRegistration,
+  validateDriverLogin,
   handleValidationErrors
 } = require('../middlewares');
 
@@ -123,6 +125,8 @@ const {
  */
 router.post('/register',
   generalLimiter,
+  validateDriverRegistration,
+  handleValidationErrors,
   driverController.register
 );
 
@@ -178,6 +182,8 @@ router.post('/register',
  */
 router.post('/login',
   generalLimiter,
+  validateDriverLogin,
+  handleValidationErrors,
   driverController.login
 );
 

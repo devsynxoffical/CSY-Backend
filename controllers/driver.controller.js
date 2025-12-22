@@ -20,25 +20,30 @@ class DriverController {
         email,
         phone,
         vehicle_type,
-        password_hash
+        password
       } = req.body;
 
       // Check if driver already exists
-      const existingDriver = await Driver.findOne({
-        OR: [{ email }, { phone }]
+      const existingDriver = await prisma.driver.findFirst({
+        where: {
+          OR: [
+            { email: email.toLowerCase() },
+            { phone: phone }
+          ]
+        }
       });
 
       if (existingDriver) {
         return res.status(409).json({
           success: false,
           message: 'Driver already exists',
-          error: existingDriver.email === email ? 'Email already registered' : 'Phone number already registered'
+          error: existingDriver.email === email.toLowerCase() ? 'Email already registered' : 'Phone number already registered'
         });
       }
 
       // Hash password
       const saltRounds = 12;
-      const hashedPassword = await bcrypt.hash(password_hash, saltRounds);
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       // Create driver
       const driver = await prisma.driver.create({
@@ -53,8 +58,8 @@ class DriverController {
         }
       });
 
-      // Generate JWT token
-      const token = generateToken(driver.id);
+      // Generate JWT token with role
+      const token = generateToken(driver.id, 'driver');
 
       logger.info('Driver registered successfully', { driverId: driver.id, name: driver.full_name });
 
@@ -78,7 +83,7 @@ class DriverController {
 
       res.status(201).json({
         success: true,
-        message: SUCCESS_MESSAGES.PROFILE_UPDATED,
+        message: 'Driver registered successfully',
         data: {
           driver: driverResponse,
           token
@@ -135,8 +140,8 @@ class DriverController {
         });
       }
 
-      // Generate JWT token
-      const token = generateToken(driver.id);
+      // Generate JWT token with role
+      const token = generateToken(driver.id, 'driver');
 
       // Update last login
       // Update last login

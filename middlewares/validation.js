@@ -85,6 +85,47 @@ const validateUserUpdate = [
   handleValidationErrors
 ];
 
+// Driver validation rules
+const validateDriverRegistration = [
+  body('full_name')
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Full name must be between 2 and 100 characters'),
+
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email address'),
+
+  body('phone')
+    .matches(VALIDATION_RULES.PHONE_REGEX)
+    .withMessage('Please provide a valid phone number'),
+
+  body('vehicle_type')
+    .trim()
+    .notEmpty()
+    .withMessage('Vehicle type is required'),
+
+  body('password')
+    .isLength({ min: VALIDATION_RULES.PASSWORD_MIN_LENGTH })
+    .withMessage(`Password must be at least ${VALIDATION_RULES.PASSWORD_MIN_LENGTH} characters long`),
+
+  handleValidationErrors
+];
+
+const validateDriverLogin = [
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email address'),
+
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required'),
+
+  handleValidationErrors
+];
+
 // Business validation rules
 const validateBusinessRegistration = [
   body('owner_email')
@@ -513,6 +554,8 @@ module.exports = {
   validateUserRegistration,
   validateUserLogin,
   validateUserUpdate,
+  validateDriverRegistration,
+  validateDriverLogin,
   validateBusinessRegistration,
   validateOrderCreation,
   validateOrderUpdate,
