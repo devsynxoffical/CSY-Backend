@@ -64,8 +64,8 @@ class BusinessController {
         }
       });
 
-      // Generate JWT token
-      const token = generateToken(business.id);
+      // Generate JWT token with role
+      const token = generateToken(business.id, 'business');
 
       // Send welcome email
       try {
@@ -189,8 +189,8 @@ CSY Pro Team`
         });
       }
 
-      // Generate JWT token
-      const token = generateToken(business.id);
+      // Generate JWT token with role
+      const token = generateToken(business.id, 'business');
 
       // Update last login
       try {
@@ -1274,7 +1274,8 @@ CSY Pro Team`
       }
 
       // Create appointment
-      const appointment = await prisma.Appointment.create({
+      // Schema uses 'time' field, so we'll use start_time as the time
+      const appointment = await prisma.appointment.create({
         data: {
           business_id: businessId,
           service_name,
@@ -1282,8 +1283,7 @@ CSY Pro Team`
           duration,
           price,
           date: appointmentDate,
-          start_time,
-          end_time,
+          time: start_time, // Schema has 'time' field, not 'start_time' or 'end_time'
           is_available: true
         }
       });
@@ -1473,9 +1473,9 @@ CSY Pro Team`
           name,
           description,
           ingredients,
-          image,
+          image_url: image, // Schema uses image_url, not image
           price,
-          add_ons,
+          // Note: add_ons is not in Product schema, stored in OrderItem preferences instead
           is_available: true
         }
       });

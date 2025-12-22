@@ -28,6 +28,9 @@ const { errorHandler, requestLogger } = require('./middlewares');
 const app = express();
 const PORT = process.env.PORT || 3119;
 
+// Trust proxy (required for Railway/reverse proxy environments)
+app.set('trust proxy', true);
+
 // Middleware setup
 app.use(cors({
   origin: function (origin, callback) {

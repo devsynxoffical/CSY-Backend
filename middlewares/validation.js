@@ -177,10 +177,19 @@ const validateBusinessRegistration = [
 
 // Order validation rules
 const validateOrderCreation = [
-  body('business_id')
+  // Note: business_id is NOT required - it's derived from product_id in items
+  body('items')
+    .isArray({ min: 1 })
+    .withMessage('Items array is required with at least one item'),
+
+  body('items.*.product_id')
     .isString()
     .notEmpty()
-    .withMessage('Business ID is required'),
+    .withMessage('Product ID is required for each item'),
+
+  body('items.*.quantity')
+    .isInt({ min: 1 })
+    .withMessage('Quantity must be at least 1'),
 
   body('order_type')
     .isIn(['delivery', 'pickup'])
@@ -197,14 +206,28 @@ const validateOrderCreation = [
 
   body('delivery_address.name')
     .if(body('order_type').equals('delivery'))
+    .optional()
     .trim()
     .isLength({ min: 2, max: 100 })
     .withMessage('Recipient name must be between 2 and 100 characters'),
 
   body('delivery_address.phone')
     .if(body('order_type').equals('delivery'))
+    .optional()
     .matches(VALIDATION_RULES.PHONE_REGEX)
     .withMessage('Please provide a valid phone number'),
+
+  body('delivery_address.latitude')
+    .if(body('order_type').equals('delivery'))
+    .optional()
+    .isFloat({ min: -90, max: 90 })
+    .withMessage('Latitude must be between -90 and 90'),
+
+  body('delivery_address.longitude')
+    .if(body('order_type').equals('delivery'))
+    .optional()
+    .isFloat({ min: -180, max: 180 })
+    .withMessage('Longitude must be between -180 and 180'),
 
   handleValidationErrors
 ];

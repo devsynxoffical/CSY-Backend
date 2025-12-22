@@ -485,11 +485,31 @@ class UserController {
         });
       }
 
+      // Filter out fields that don't exist in schema (like 'label', 'governorate')
+      const allowedFields = [
+        'recipient_name',
+        'area',
+        'street',
+        'city',
+        'floor',
+        'phone',
+        'latitude',
+        'longitude',
+        'is_default'
+      ];
+
+      const filteredAddressData = {};
+      for (const field of allowedFields) {
+        if (addressData[field] !== undefined) {
+          filteredAddressData[field] = addressData[field];
+        }
+      }
+
       // Create address
       const address = await prisma.address.create({
         data: {
           user_id: userId,
-          ...addressData
+          ...filteredAddressData
         }
       });
 

@@ -1,4 +1,4 @@
-const { User } = require('../models');
+const { prisma } = require('../models');
 const { logger } = require('../utils');
 
 /**
@@ -124,7 +124,7 @@ class AIAssistantService {
    */
   async generateResponse(userId, message, context = {}) {
     try {
-      const user = await User.findOne({ where: { id: userId } });
+      const user = await prisma.user.findUnique({ where: { id: userId } });
       if (!user) {
         throw new Error('User not found');
       }
@@ -326,7 +326,7 @@ class AIAssistantService {
    */
   async generateRecommendations(userId, preferences = {}) {
     try {
-      const user = await User.findOne({ where: { id: userId } });
+      const user = await prisma.user.findUnique({ where: { id: userId } });
 
       const context = {
         intent: 'restaurant_search',
