@@ -726,9 +726,11 @@ class DriverController {
       const driverLat = latitude || driver?.current_latitude;
       const driverLng = longitude || driver?.current_longitude;
 
-      // Find orders that are ready for pickup (preparing status) without assigned driver
+      // Find orders that are ready for driver pickup (waiting_driver status) without assigned driver
+      // Only delivery orders need drivers
       const where = {
-        status: 'preparing',
+        status: 'waiting_driver',
+        order_type: 'delivery',
         driver_id: null
       };
 
@@ -739,8 +741,19 @@ class DriverController {
             user: {
               select: { id: true, full_name: true, phone: true }
             },
-            business: {
-              select: { business_name: true, address: true, latitude: true, longitude: true }
+            order_items: {
+              take: 1, // Get first order item to get business info
+              include: {
+                business: {
+                  select: { 
+                    id: true,
+                    business_name: true, 
+                    address: true, 
+                    latitude: true, 
+                    longitude: true 
+                  }
+                }
+              }
             }
           },
           orderBy: { created_at: 'desc' },
@@ -750,11 +763,21 @@ class DriverController {
         prisma.order.count({ where })
       ]);
 
+      // Transform orders to include business info from first order item
+      const transformedOrders = orders.map(order => {
+        const business = order.order_items?.[0]?.business || null;
+        const { order_items, ...orderData } = order;
+        return {
+          ...orderData,
+          business
+        };
+      });
+
       res.json({
         success: true,
         message: 'Incoming orders retrieved successfully',
         data: {
-          orders,
+          orders: transformedOrders,
           pagination: {
             page: parseInt(page),
             limit: parseInt(limit),
