@@ -11,6 +11,7 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "node scripts/seed.js",
+    "db:seed:dashboard": "node scripts/seed-dashboard-data.js",
     "db:backup": "node scripts/backup.js",
     "db:restore": "node scripts/restore.js",
     "prisma:studio": "prisma studio"
