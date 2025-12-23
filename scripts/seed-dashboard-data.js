@@ -17,44 +17,100 @@ async function seed() {
         
         const users = [];
         
-        // Main test user
-        const user1 = await prisma.user.upsert({
-            where: { email: 'user@test.com' },
-            update: {},
-            create: {
-                full_name: 'Ahmed Ali',
-                email: 'user@test.com',
-                phone: '+201234567890',
-                password_hash: hashedPassword,
-                pass_id: 'DM-100001',
-                governorate_code: 'DM',
-                wallet_balance: 25000, // 250 EGP
-                points: 150,
-                is_active: true,
-                is_verified: true,
-                ai_assistant_name: 'CSY Assistant'
+        // Main test user - Check if exists by email or phone, then update or create
+        let user1 = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: 'user@test.com' },
+                    { phone: '+201234567890' }
+                ]
             }
         });
+
+        if (user1) {
+            // Update existing user
+            user1 = await prisma.user.update({
+                where: { id: user1.id },
+                data: {
+                    full_name: 'Ahmed Ali',
+                    email: 'user@test.com',
+                    phone: '+201234567890',
+                    password_hash: hashedPassword,
+                    pass_id: 'DM-100001',
+                    governorate_code: 'DM',
+                    wallet_balance: 25000,
+                    points: 150,
+                    is_active: true,
+                    is_verified: true,
+                    ai_assistant_name: 'CSY Assistant'
+                }
+            });
+            console.log('✅ Updated existing user:', user1.email);
+        } else {
+            // Create new user
+            user1 = await prisma.user.create({
+                data: {
+                    full_name: 'Ahmed Ali',
+                    email: 'user@test.com',
+                    phone: '+201234567890',
+                    password_hash: hashedPassword,
+                    pass_id: 'DM-100001',
+                    governorate_code: 'DM',
+                    wallet_balance: 25000, // 250 EGP
+                    points: 150,
+                    is_active: true,
+                    is_verified: true,
+                    ai_assistant_name: 'CSY Assistant'
+                }
+            });
+            console.log('✅ Created user:', user1.email);
+        }
         users.push(user1);
-        console.log('✅ Created user:', user1.email);
 
         // Additional users
-        const user2 = await prisma.user.upsert({
-            where: { email: 'sara@test.com' },
-            update: {},
-            create: {
-                full_name: 'Sara Mohamed',
-                email: 'sara@test.com',
-                phone: '+201234567891',
-                password_hash: hashedPassword,
-                pass_id: 'DM-100002',
-                governorate_code: 'DM',
-                wallet_balance: 15000,
-                points: 80,
-                is_active: true,
-                is_verified: true
+        let user2 = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: 'sara@test.com' },
+                    { phone: '+201234567891' }
+                ]
             }
         });
+
+        if (user2) {
+            user2 = await prisma.user.update({
+                where: { id: user2.id },
+                data: {
+                    full_name: 'Sara Mohamed',
+                    email: 'sara@test.com',
+                    phone: '+201234567891',
+                    password_hash: hashedPassword,
+                    pass_id: 'DM-100002',
+                    governorate_code: 'DM',
+                    wallet_balance: 15000,
+                    points: 80,
+                    is_active: true,
+                    is_verified: true
+                }
+            });
+            console.log('✅ Updated existing user:', user2.email);
+        } else {
+            user2 = await prisma.user.create({
+                data: {
+                    full_name: 'Sara Mohamed',
+                    email: 'sara@test.com',
+                    phone: '+201234567891',
+                    password_hash: hashedPassword,
+                    pass_id: 'DM-100002',
+                    governorate_code: 'DM',
+                    wallet_balance: 15000,
+                    points: 80,
+                    is_active: true,
+                    is_verified: true
+                }
+            });
+            console.log('✅ Created user:', user2.email);
+        }
         users.push(user2);
 
         // ============================================
@@ -64,77 +120,160 @@ async function seed() {
         
         const businesses = [];
         
-        const business1 = await prisma.business.upsert({
-            where: { owner_email: 'restaurant@test.com' },
-            update: {},
-            create: {
-                owner_email: 'restaurant@test.com',
-                password_hash: hashedPassword,
-                business_name: 'Delicious Restaurant',
-                business_type: 'restaurant',
-                app_type: 'pass',
-                address: '123 Main Street, Downtown',
-                city: 'Damascus',
-                governorate: 'Damascus',
-                latitude: 33.5138,
-                longitude: 36.2765,
-                phone: '+201234567900',
-                has_reservations: true,
-                has_delivery: true,
-                rating_average: 4.5,
-                rating_count: 25,
-                is_active: true
-            }
+        // Business 1
+        let business1 = await prisma.business.findUnique({
+            where: { owner_email: 'restaurant@test.com' }
         });
-        businesses.push(business1);
-        console.log('✅ Created business:', business1.business_name);
 
-        const business2 = await prisma.business.upsert({
-            where: { owner_email: 'cafe@test.com' },
-            update: {},
-            create: {
-                owner_email: 'cafe@test.com',
-                password_hash: hashedPassword,
-                business_name: 'Coffee House',
-                business_type: 'cafe',
-                app_type: 'pass',
-                address: '456 Coffee Street',
-                city: 'Damascus',
-                governorate: 'Damascus',
-                latitude: 33.5200,
-                longitude: 36.2800,
-                phone: '+201234567901',
-                has_reservations: true,
-                has_delivery: false,
-                rating_average: 4.2,
-                rating_count: 18,
-                is_active: true
-            }
+        if (business1) {
+            business1 = await prisma.business.update({
+                where: { id: business1.id },
+                data: {
+                    password_hash: hashedPassword,
+                    business_name: 'Delicious Restaurant',
+                    business_type: 'restaurant',
+                    app_type: 'pass',
+                    address: '123 Main Street, Downtown',
+                    city: 'Damascus',
+                    governorate: 'Damascus',
+                    latitude: 33.5138,
+                    longitude: 36.2765,
+                    phone: '+201234567900',
+                    has_reservations: true,
+                    has_delivery: true,
+                    rating_average: 4.5,
+                    rating_count: 25,
+                    is_active: true
+                }
+            });
+            console.log('✅ Updated business:', business1.business_name);
+        } else {
+            business1 = await prisma.business.create({
+                data: {
+                    owner_email: 'restaurant@test.com',
+                    password_hash: hashedPassword,
+                    business_name: 'Delicious Restaurant',
+                    business_type: 'restaurant',
+                    app_type: 'pass',
+                    address: '123 Main Street, Downtown',
+                    city: 'Damascus',
+                    governorate: 'Damascus',
+                    latitude: 33.5138,
+                    longitude: 36.2765,
+                    phone: '+201234567900',
+                    has_reservations: true,
+                    has_delivery: true,
+                    rating_average: 4.5,
+                    rating_count: 25,
+                    is_active: true
+                }
+            });
+            console.log('✅ Created business:', business1.business_name);
+        }
+        businesses.push(business1);
+
+        // Business 2
+        let business2 = await prisma.business.findUnique({
+            where: { owner_email: 'cafe@test.com' }
         });
+
+        if (business2) {
+            business2 = await prisma.business.update({
+                where: { id: business2.id },
+                data: {
+                    password_hash: hashedPassword,
+                    business_name: 'Coffee House',
+                    business_type: 'cafe',
+                    app_type: 'pass',
+                    address: '456 Coffee Street',
+                    city: 'Damascus',
+                    governorate: 'Damascus',
+                    latitude: 33.5200,
+                    longitude: 36.2800,
+                    phone: '+201234567901',
+                    has_reservations: true,
+                    has_delivery: false,
+                    rating_average: 4.2,
+                    rating_count: 18,
+                    is_active: true
+                }
+            });
+            console.log('✅ Updated business:', business2.business_name);
+        } else {
+            business2 = await prisma.business.create({
+                data: {
+                    owner_email: 'cafe@test.com',
+                    password_hash: hashedPassword,
+                    business_name: 'Coffee House',
+                    business_type: 'cafe',
+                    app_type: 'pass',
+                    address: '456 Coffee Street',
+                    city: 'Damascus',
+                    governorate: 'Damascus',
+                    latitude: 33.5200,
+                    longitude: 36.2800,
+                    phone: '+201234567901',
+                    has_reservations: true,
+                    has_delivery: false,
+                    rating_average: 4.2,
+                    rating_count: 18,
+                    is_active: true
+                }
+            });
+            console.log('✅ Created business:', business2.business_name);
+        }
         businesses.push(business2);
 
-        const business3 = await prisma.business.upsert({
-            where: { owner_email: 'clinic@test.com' },
-            update: {},
-            create: {
-                owner_email: 'clinic@test.com',
-                password_hash: hashedPassword,
-                business_name: 'Health Clinic',
-                business_type: 'clinic',
-                app_type: 'care',
-                address: '789 Medical Street',
-                city: 'Damascus',
-                governorate: 'Damascus',
-                latitude: 33.5100,
-                longitude: 36.2750,
-                phone: '+201234567902',
-                has_reservations: true,
-                has_delivery: false,
-                rating_average: 4.8,
-                rating_count: 12,
-                is_active: true
-            }
+        // Business 3
+        let business3 = await prisma.business.findUnique({
+            where: { owner_email: 'clinic@test.com' }
         });
+
+        if (business3) {
+            business3 = await prisma.business.update({
+                where: { id: business3.id },
+                data: {
+                    password_hash: hashedPassword,
+                    business_name: 'Health Clinic',
+                    business_type: 'clinic',
+                    app_type: 'care',
+                    address: '789 Medical Street',
+                    city: 'Damascus',
+                    governorate: 'Damascus',
+                    latitude: 33.5100,
+                    longitude: 36.2750,
+                    phone: '+201234567902',
+                    has_reservations: true,
+                    has_delivery: false,
+                    rating_average: 4.8,
+                    rating_count: 12,
+                    is_active: true
+                }
+            });
+            console.log('✅ Updated business:', business3.business_name);
+        } else {
+            business3 = await prisma.business.create({
+                data: {
+                    owner_email: 'clinic@test.com',
+                    password_hash: hashedPassword,
+                    business_name: 'Health Clinic',
+                    business_type: 'clinic',
+                    app_type: 'care',
+                    address: '789 Medical Street',
+                    city: 'Damascus',
+                    governorate: 'Damascus',
+                    latitude: 33.5100,
+                    longitude: 36.2750,
+                    phone: '+201234567902',
+                    has_reservations: true,
+                    has_delivery: false,
+                    rating_average: 4.8,
+                    rating_count: 12,
+                    is_active: true
+                }
+            });
+            console.log('✅ Created business:', business3.business_name);
+        }
         businesses.push(business3);
 
         // ============================================
