@@ -87,13 +87,13 @@ class OrderController {
         if (!product.is_available) {
           return res.status(400).json({
             success: false,
-            message: `Product is not available: ${product.product_name}`,
+            message: `Product is not available: ${product.name}`,
             error: 'PRODUCT_NOT_AVAILABLE'
           });
         }
 
         // Calculate item total
-        let itemTotal = product.price * quantity;
+        let itemTotal = Number(product.price) * quantity;
 
         // Add add-ons pricing if any
         if (add_ons && Array.isArray(add_ons)) {
@@ -109,9 +109,8 @@ class OrderController {
         orderItems.push({
           product_id,
           business_id: product.business_id,
-          product_name: product.product_name,
           quantity,
-          price: product.price,
+          price: Number(product.price),
           add_ons: add_ons || [],
           total_price: itemTotal,
           is_available: product.is_available
@@ -193,20 +192,22 @@ class OrderController {
       // Generate order number
       const orderNumber = await this.generateOrderNumber();
 
-      // Create order
-      const order = await Order.create({
-        order_number: orderNumber,
-        user_id: userId,
-        order_type,
-        payment_method,
-        payment_status: 'pending',
-        status: 'pending',
-        delivery_address: delivery_address || {},
-        total_amount: totalAmount,
-        discount_amount: discountAmount,
-        platform_fee: platformFee,
-        delivery_fee: deliveryFee,
-        final_amount: finalAmount
+      // Create order with Prisma
+      const order = await prisma.order.create({
+        data: {
+          order_number: orderNumber,
+          user_id: userId,
+          order_type,
+          payment_method,
+          payment_status: 'pending',
+          status: 'pending',
+          delivery_address: delivery_address || {},
+          total_amount: totalAmount,
+          discount_amount: discountAmount,
+          platform_fee: platformFee,
+          delivery_fee: deliveryFee,
+          final_amount: finalAmount
+        }
       });
 
       // Create order items
@@ -214,7 +215,13 @@ class OrderController {
         await prisma.orderItem.create({
           data: {
             order_id: order.id,
-            ...item
+            business_id: item.business_id,
+            product_id: item.product_id,
+            quantity: item.quantity,
+            unit_price: item.price,
+            total_price: item.total_price,
+            preferences: item.add_ons || null,
+            is_available: item.is_available
           }
         });
       }
@@ -222,8 +229,10 @@ class OrderController {
       // Generate QR code for pickup orders
       if (order_type === 'pickup') {
         const qrCode = await qrService.generateOrderQR(order.id);
-        order.qr_code = qrCode;
-        // TODO: Replace with prisma update - await order.save();
+        await prisma.order.update({
+          where: { id: order.id },
+          data: { qr_code: qrCode }
+        });
       }
 
       // Send notification to business(es)
@@ -600,7 +609,7 @@ class OrderController {
 
         cartItems.push({
           product_id,
-          product_name: product.product_name,
+          product_name: product.name,
           quantity,
           price: product.price,
           add_ons: add_ons || [],
@@ -745,7 +754,7 @@ class OrderController {
         include: {
           product: {
             select: {
-              product_name: true,
+              name: true,
               image_url: true
             }
           }
