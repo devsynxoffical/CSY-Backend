@@ -50,8 +50,8 @@ class CashierController {
         });
       }
 
-      // Generate JWT token
-      const token = generateToken(cashier.id);
+      // Generate JWT token with role
+      const token = generateToken(cashier.id, 'cashier');
 
       // Update last login
       await prisma.cashier.update({
@@ -246,15 +246,19 @@ class CashierController {
         });
       }
 
-      // Find order in cashier's business
+      // Find order and verify it belongs to cashier's business
+      // Order doesn't have business_id, so we check through OrderItem
       const order = await prisma.order.findUnique({
-        where: {
-          id: orderId,
-          business_id: cashier.business_id
+        where: { id: orderId },
+        include: {
+          order_items: {
+            where: { business_id: cashier.business_id },
+            take: 1
+          }
         }
       });
 
-      if (!order) {
+      if (!order || order.order_items.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Order not found',
@@ -263,7 +267,7 @@ class CashierController {
       }
 
       // Validate status transition
-      const validStatuses = ['pending', 'accepted', 'preparing', 'ready', 'completed', 'cancelled'];
+      const validStatuses = ['pending', 'accepted', 'preparing', 'waiting_driver', 'ready', 'completed', 'cancelled'];
       if (!validStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
@@ -295,6 +299,23 @@ class CashierController {
         newStatus: status
       });
 
+      // Get updated order with full details
+      const updatedOrder = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          user: {
+            select: { id: true, full_name: true, phone: true }
+          },
+          order_items: {
+            include: {
+              product: {
+                select: { id: true, name: true, price: true, image_url: true }
+              }
+            }
+          }
+        }
+      });
+
       // Notify user about status change
       await notificationService.sendOrderNotification(order.user_id, orderId, status, {
         email: null, // Would need user email
@@ -305,9 +326,10 @@ class CashierController {
         success: true,
         message: 'Order status updated successfully',
         data: {
-          orderId,
-          status,
-          updated_at: new Date()
+          order: updatedOrder,
+          old_status: order.status,
+          new_status: status,
+          updated_at: updatedOrder.updated_at
         }
       });
     } catch (error) {

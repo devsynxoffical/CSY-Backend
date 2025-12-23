@@ -308,12 +308,25 @@ const validateAddressCreation = [
     .withMessage('Please provide a valid phone number'),
 
   body('latitude')
+    .optional()
     .isFloat({ min: -90, max: 90 })
     .withMessage('Latitude must be between -90 and 90'),
 
   body('longitude')
+    .optional()
     .isFloat({ min: -180, max: 180 })
     .withMessage('Longitude must be between -180 and 180'),
+
+  body('floor')
+    .optional()
+    .trim()
+    .isLength({ max: 50 })
+    .withMessage('Floor must not exceed 50 characters'),
+
+  body('is_default')
+    .optional()
+    .isBoolean()
+    .withMessage('is_default must be a boolean'),
 
   handleValidationErrors
 ];

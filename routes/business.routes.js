@@ -653,6 +653,7 @@ router.delete('/photos/:id',
  */
 router.post('/cashiers',
   generalLimiter,
+  authenticateBusiness,
   businessController.createCashier
 );
 
