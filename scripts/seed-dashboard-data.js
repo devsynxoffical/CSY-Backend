@@ -1,13 +1,8 @@
 // Load environment variables
-require('dotenv').config({ path: require('path').resolve(__dirname, '../.env') });
+require('dotenv').config();
 
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../config/database');
 const bcrypt = require('bcryptjs');
-
-// Create Prisma client after loading env
-const prisma = new PrismaClient({
-  log: ['error', 'warn'],
-});
 
 async function seed() {
     console.log('🌱 Seeding database with dashboard test data...\n');
