@@ -1007,6 +1007,9 @@ router.get('/appointments',
  */
 router.post('/appointments',
   generalLimiter,
+  authenticateBusiness,
+  validateAppointmentCreation,
+  handleValidationErrors,
   businessController.addAppointment
 );
 

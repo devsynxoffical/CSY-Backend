@@ -244,8 +244,8 @@ const validateReservationCreation = [
     .withMessage('Invalid reservation type'),
 
   body('date')
-    .isISO8601()
-    .withMessage('Please provide a valid date'),
+    .isISO8601({ strict: false })
+    .withMessage('Please provide a valid date in YYYY-MM-DD format'),
 
   body('time')
     .matches(VALIDATION_RULES.TIME_FORMAT_REGEX)
@@ -262,6 +262,23 @@ const validateReservationCreation = [
   body('payment_method')
     .isIn(['cash', 'online'])
     .withMessage('Payment method must be either cash or online'),
+
+  body('notes')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Notes must not exceed 500 characters'),
+
+  body('specialty')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('Specialty must not exceed 100 characters'),
+
+  body('amount')
+    .optional()
+    .isFloat({ min: 0 })
+    .withMessage('Amount must be a positive number'),
 
   handleValidationErrors
 ];
@@ -600,6 +617,7 @@ module.exports = {
   validateAddressCreation,
   validateWalletTopup,
   validatePaymentProcessing,
+  validateAppointmentCreation,
   validateRefundRequest,
   validateQRGeneration,
   validateQRValidation,

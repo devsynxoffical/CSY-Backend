@@ -5,7 +5,9 @@ const router = express.Router();
 const reservationController = require('../controllers/reservation.controller');
 const {
   authenticate,
-  validateUUID
+  validateUUID,
+  validateReservationCreation,
+  handleValidationErrors
 } = require('../middlewares');
 
 // Import rate limiters
@@ -138,6 +140,8 @@ router.use(authenticate);
  */
 router.post('/',
   reservationLimiter,
+  validateReservationCreation,
+  handleValidationErrors,
   reservationController.createReservation
 );
 

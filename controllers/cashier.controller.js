@@ -309,9 +309,16 @@ class CashierController {
           order_items: {
             include: {
               product: {
-                select: { id: true, name: true, price: true, image_url: true }
+                select: { id: true, name: true, price: true, image_url: true, category: true }
+              },
+              business: {
+                select: { id: true, business_name: true, address: true }
               }
-            }
+            },
+            orderBy: { created_at: 'asc' }
+          },
+          driver: {
+            select: { id: true, full_name: true, phone: true, vehicle_type: true }
           }
         }
       });
@@ -322,15 +329,37 @@ class CashierController {
         phone: null  // Would need user phone
       });
 
+      // Format response with all necessary order details
+      const responseData = {
+        id: updatedOrder.id,
+        order_number: updatedOrder.order_number,
+        status: updatedOrder.status,
+        order_type: updatedOrder.order_type,
+        payment_method: updatedOrder.payment_method,
+        payment_status: updatedOrder.payment_status,
+        total_amount: updatedOrder.total_amount,
+        discount_amount: updatedOrder.discount_amount,
+        platform_fee: updatedOrder.platform_fee,
+        delivery_fee: updatedOrder.delivery_fee,
+        final_amount: updatedOrder.final_amount,
+        delivery_address: updatedOrder.delivery_address,
+        qr_code: updatedOrder.qr_code,
+        created_at: updatedOrder.created_at,
+        updated_at: updatedOrder.updated_at,
+        user: updatedOrder.user,
+        driver: updatedOrder.driver,
+        order_items: updatedOrder.order_items,
+        status_change: {
+          old_status: order.status,
+          new_status: status,
+          changed_at: updatedOrder.updated_at
+        }
+      };
+
       res.json({
         success: true,
         message: 'Order status updated successfully',
-        data: {
-          order: updatedOrder,
-          old_status: order.status,
-          new_status: status,
-          updated_at: updatedOrder.updated_at
-        }
+        data: responseData
       });
     } catch (error) {
       logger.error('Order status update failed', {
