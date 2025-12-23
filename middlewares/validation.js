@@ -348,6 +348,42 @@ const validateAddressCreation = [
   handleValidationErrors
 ];
 
+// Appointment validation rules (for business to create appointment slots)
+const validateAppointmentCreation = [
+  body('service_name')
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Service name must be between 2 and 100 characters'),
+
+  body('duration')
+    .isInt({ min: 15, max: 480 })
+    .withMessage('Duration must be between 15 and 480 minutes'),
+
+  body('price')
+    .isFloat({ min: 0 })
+    .withMessage('Price must be a positive number'),
+
+  body('date')
+    .isISO8601({ strict: false })
+    .withMessage('Please provide a valid date in YYYY-MM-DD format'),
+
+  body('start_time')
+    .matches(VALIDATION_RULES.TIME_FORMAT_REGEX)
+    .withMessage('Start time must be in HH:MM format'),
+
+  body('end_time')
+    .matches(VALIDATION_RULES.TIME_FORMAT_REGEX)
+    .withMessage('End time must be in HH:MM format'),
+
+  body('description')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Description must not exceed 500 characters'),
+
+  handleValidationErrors
+];
+
 // Wallet validation rules
 const validateWalletTopup = [
   body('amount')
