@@ -233,7 +233,7 @@ class DriverController {
           return await prisma.order.count({
             where: {
               driver_id: driverId,
-              status: 'delivered',
+              status: 'completed',
               actual_delivery_time: {
                 gte: today,
                 lt: tomorrow
@@ -672,7 +672,7 @@ class DriverController {
       await prisma.order.update({
         where: { id: orderId },
         data: {
-          status: 'delivered',
+          status: 'completed',
           actual_delivery_time: new Date(),
           updated_at: new Date()
         }
@@ -691,7 +691,7 @@ class DriverController {
         message: 'Order marked as delivered successfully',
         data: {
           orderId,
-          status: 'delivered',
+          status: 'completed',
           delivered_at: new Date()
         }
       });
@@ -1145,7 +1145,7 @@ class DriverController {
       prisma.order.count({
         where: {
           driver_id: driverId,
-          status: 'delivered',
+          status: 'completed',
           created_at: { gte: startDate, lte: endDate }
         }
       }),
@@ -1170,7 +1170,7 @@ class DriverController {
     const aggregate = await prisma.order.aggregate({
       where: {
         driver_id: driverId,
-        status: 'delivered',
+        status: 'completed',
         actual_delivery_time: { gte: startDate, lte: endDate }
       },
       _sum: { final_amount: true },
@@ -1218,7 +1218,7 @@ class DriverController {
       const completedOrders = await prisma.order.findMany({
         where: {
           driver_id: driverId,
-          status: 'delivered',
+          status: 'completed',
           actual_delivery_time: {
             gte: start,
             lte: end
@@ -1289,7 +1289,7 @@ class DriverController {
     const completedOrders = await prisma.order.count({
       where: {
         driver_id: driverId,
-        status: 'delivered',
+        status: 'completed',
         actual_delivery_time: {
           gte: today,
           lt: tomorrow

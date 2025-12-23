@@ -29,7 +29,8 @@ const app = express();
 const PORT = process.env.PORT || 3119;
 
 // Trust proxy (required for Railway/reverse proxy environments)
-app.set('trust proxy', true);
+// Trust only the first proxy (Railway uses 1 proxy)
+app.set('trust proxy', 1);
 
 // Middleware setup
 app.use(cors({

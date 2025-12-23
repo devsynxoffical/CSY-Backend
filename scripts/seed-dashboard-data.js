@@ -378,9 +378,12 @@ async function seed() {
             const createdAt = new Date();
             createdAt.setDate(createdAt.getDate() - daysAgo);
             
+            // Generate unique order number with timestamp to avoid conflicts
+            const uniqueOrderNumber = `ORD-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 6)}`;
+            
             const order = await prisma.order.create({
                 data: {
-                    order_number: `ORD-2024${String(1000 + i).padStart(4, '0')}`,
+                    order_number: uniqueOrderNumber,
                     user_id: user1.id,
                     address_id: address1.id,
                     order_type: 'delivery',
@@ -424,8 +427,12 @@ async function seed() {
         // 6. CREATE RESERVATIONS
         // ============================================
         console.log('\n📅 Creating reservations...');
+        console.log('   ⚠️  Skipping reservations - database schema needs migration for amount fields');
         
         const reservations = [];
+        // Skip reservation creation if database schema is not up to date
+        // Uncomment below after running migrations to add total_amount, discount_amount, final_amount columns
+        /*
         const reservationTypes = ['table', 'activity', 'medical', 'beauty'];
         const reservationStatuses = ['confirmed', 'pending', 'completed', 'cancelled'];
         
@@ -436,29 +443,57 @@ async function seed() {
             const date = new Date();
             date.setDate(date.getDate() + daysAgo);
             
-            const reservation = await prisma.reservation.create({
-                data: {
-                    user_id: user1.id,
-                    business_id: type === 'medical' ? business3.id : business1.id,
-                    reservation_type: type,
-                    date: date,
-                    time: `${10 + (i % 12)}:${(i % 2) * 30}`.padStart(5, '0'),
-                    duration: 60 + (i % 3) * 30,
-                    number_of_people: 1 + (i % 4),
-                    payment_method: i % 2 === 0 ? 'cash' : 'online',
-                    payment_status: status === 'confirmed' ? 'paid' : 'pending',
-                    status: status,
-                    total_amount: 50000 + (i * 5000),
-                    discount_amount: 5000 + (i * 500),
-                    final_amount: 45000 + (i * 4500),
-                    qr_code: `QR-RES-${Date.now()}-${i}`,
-                    notes: i % 2 === 0 ? 'Window seat preferred' : null,
-                    specialty: type === 'medical' ? 'Cardiology' : null
+            // Create reservation - database might not have amount fields yet
+            // Since Prisma Client includes fields from schema, we need to use raw query if fields don't exist
+            let reservation;
+            try {
+                // Try with amount fields first (if database has them)
+                reservation = await prisma.reservation.create({
+                    data: {
+                        user_id: user1.id,
+                        business_id: type === 'medical' ? business3.id : business1.id,
+                        reservation_type: type,
+                        date: date,
+                        time: `${10 + (i % 12)}:${(i % 2) * 30}`.padStart(5, '0'),
+                        duration: 60 + (i % 3) * 30,
+                        number_of_people: 1 + (i % 4),
+                        payment_method: i % 2 === 0 ? 'cash' : 'online',
+                        payment_status: status === 'confirmed' ? 'paid' : 'pending',
+                        status: status,
+                        total_amount: 50000 + (i * 5000),
+                        discount_amount: 5000 + (i * 500),
+                        final_amount: 45000 + (i * 4500),
+                        qr_code: `QR-RES-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 9)}`,
+                        notes: i % 2 === 0 ? 'Window seat preferred' : null,
+                        specialty: type === 'medical' ? 'Cardiology' : null
+                    }
+                });
+            } catch (amountError) {
+                // If amount fields don't exist, use raw SQL to insert without those columns
+                if (amountError.code === 'P2022' && amountError.meta?.column === 'total_amount') {
+                    const qrCode = `QR-RES-${Date.now()}-${i}-${Math.random().toString(36).substr(2, 9)}`;
+                    const timeStr = `${10 + (i % 12)}:${(i % 2) * 30}`.padStart(5, '0');
+                    const dateStr = date.toISOString().split('T')[0];
+                    
+                    // Use raw query to insert without amount fields
+                    const result = await prisma.$executeRaw`
+                        INSERT INTO reservations (id, user_id, business_id, reservation_type, specialty, date, time, duration, number_of_people, payment_method, payment_status, status, qr_code, notes, created_at, updated_at)
+                        VALUES (gen_random_uuid()::text, ${user1.id}, ${type === 'medical' ? business3.id : business1.id}, ${type}::reservation_type, ${type === 'medical' ? 'Cardiology' : null}, ${dateStr}::date, ${timeStr}, ${60 + (i % 3) * 30}, ${1 + (i % 4)}, ${i % 2 === 0 ? 'cash' : 'online'}::payment_method, ${status === 'confirmed' ? 'paid' : 'pending'}::payment_status, ${status}::reservation_status, ${qrCode}, ${i % 2 === 0 ? 'Window seat preferred' : null}, NOW(), NOW())
+                        RETURNING id
+                    `;
+                    
+                    // Fetch the created reservation
+                    reservation = await prisma.reservation.findUnique({
+                        where: { qr_code: qrCode }
+                    });
+                } else {
+                    throw amountError;
                 }
-            });
+            }
             reservations.push(reservation);
         }
-        console.log(`✅ Created ${reservations.length} reservations`);
+        */
+        console.log(`✅ Skipped reservations (0 created - run migrations first)`);
 
         // ============================================
         // 7. CREATE TRANSACTIONS

@@ -17,6 +17,10 @@ const generalLimiter = rateLimit({
   },
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  // Skip trust proxy validation for Railway deployment
+  validate: {
+    trustProxy: false
+  },
   handler: (req, res) => {
     res.status(429).json({
       success: false,
@@ -38,6 +42,9 @@ const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: {
+    trustProxy: false
+  },
   handler: (req, res) => {
     res.status(429).json({
       success: false,
@@ -76,6 +83,9 @@ const reservationLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: {
+    trustProxy: false
+  },
   keyGenerator: (req) => {
     return getClientIP(req);
   }
@@ -92,6 +102,9 @@ const ratingLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: {
+    trustProxy: false
+  },
   keyGenerator: (req) => {
     return getClientIP(req);
   }
@@ -108,6 +121,9 @@ const notificationLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: {
+    trustProxy: false
+  },
   keyGenerator: (req) => {
     return getClientIP(req);
   }
@@ -123,7 +139,10 @@ const uploadLimiter = rateLimit({
     error: 'File upload rate limit exceeded'
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  validate: {
+    trustProxy: false
+  }
 });
 
 // API endpoint specific limiters
@@ -138,6 +157,9 @@ const createEndpointLimiter = (windowMs, maxRequests, message) => {
     },
     standardHeaders: true,
     legacyHeaders: false,
+    validate: {
+      trustProxy: false
+    },
     keyGenerator: (req) => {
       return getClientIP(req);
     }
@@ -242,6 +264,9 @@ const strictLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: {
+    trustProxy: false
+  },
   handler: (req, res) => {
     res.status(429).json({
       success: false,

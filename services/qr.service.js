@@ -258,7 +258,7 @@ class QRService {
         // Driver scanning for delivery
         if (order.status === 'in_delivery') {
           await order.update({
-            status: 'delivered',
+            status: 'completed',
             actual_delivery_time: new Date()
           });
           return {
