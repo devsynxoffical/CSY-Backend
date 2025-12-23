@@ -19,13 +19,19 @@ const GOVERNORATE_CODES = {
   RI: 'Rif Dimashq'
 };
 
-// Business Types
+// Business Types (must match Prisma schema)
 const BUSINESS_TYPES = [
   'restaurant',
   'cafe',
   'pharmacy',
   'clinic',
-  'beauty_center'
+  'beauty_center',
+  'juice_shop',
+  'dessert_shop',
+  'fast_food',
+  'supermarket',
+  'recreational',
+  'other'
 ];
 
 // App Types

@@ -157,8 +157,9 @@ const validateBusinessRegistration = [
     .withMessage('City must be between 2 and 100 characters'),
 
   body('governorate')
-    .isIn(Object.values(GOVERNORATE_CODES))
-    .withMessage('Invalid governorate'),
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Governorate must be between 2 and 100 characters'),
 
   body('latitude')
     .isFloat({ min: -90, max: 90 })
