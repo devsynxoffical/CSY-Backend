@@ -190,7 +190,7 @@ class OrderController {
       const finalAmount = totalAmount - discountAmount + deliveryFee + platformFee;
 
       // Generate order number
-      const orderNumber = await this.generateOrderNumber();
+      const orderNumber = generateOrderNumber();
 
       // Create order with Prisma
       const order = await prisma.order.create({
@@ -815,7 +815,7 @@ class OrderController {
         items: items.map(item => ({
           id: item.id,
           product_id: item.product_id,
-          product_name: item.product?.product_name || 'Unknown Product',
+          product_name: item.product?.name || 'Unknown Product',
           quantity: item.quantity,
           price: item.unit_price,
           add_ons: item.preferences, // Mapping preferences to add_ons
