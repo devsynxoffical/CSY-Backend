@@ -19,9 +19,19 @@ class CashierController {
     try {
       const { email, password } = req.body;
 
-      // Find cashier by email and populate business
-      const cashier = await prisma.cashier.findUnique({ where: { email: email.toLowerCase() } })
-        .populate('business_id', 'id business_name business_type');
+      // Find cashier by email and include business relation
+      const cashier = await prisma.cashier.findUnique({ 
+        where: { email: email.toLowerCase() },
+        include: {
+          business: {
+            select: {
+              id: true,
+              business_name: true,
+              business_type: true
+            }
+          }
+        }
+      });
 
       if (!cashier) {
         return res.status(401).json({
@@ -67,17 +77,17 @@ class CashierController {
         full_name: cashier.full_name,
         is_active: cashier.is_active,
         created_at: cashier.created_at,
-        business: cashier.business_id ? {
-          id: cashier.business_id.id,
-          name: cashier.business_id.business_name,
-          type: cashier.business_id.business_type
+        business: cashier.business ? {
+          id: cashier.business.id,
+          name: cashier.business.business_name,
+          type: cashier.business.business_type
         } : null
       };
 
       logger.info('Cashier logged in successfully', {
         cashierId: cashier.id,
         businessId: cashier.business_id,
-        businessName: cashier.business_id?.business_name
+        businessName: cashier.business?.business_name
       });
 
       res.json({
