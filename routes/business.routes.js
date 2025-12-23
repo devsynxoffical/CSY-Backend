@@ -1522,10 +1522,6 @@ router.get('/analytics',
  *                     pagination:
  *                       type: object
  */
-router.get('/financials',
-  generalLimiter,
-  businessController.getFinancials
-);
 
 /**
  * @swagger
