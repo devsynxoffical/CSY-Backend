@@ -252,6 +252,62 @@ router.get('/',
 
 /**
  * @swagger
+ * /api/business/cashiers:
+ *   get:
+ *     summary: Get business cashiers
+ *     tags: [Business Management]
+ *     description: Retrieve all cashiers for the business
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Items per page
+ *     responses:
+ *       200:
+ *         description: Cashiers retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Cashiers retrieved successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     cashiers:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         description: Cashier information
+ *                     pagination:
+ *                       type: object
+ */
+router.get('/cashiers',
+  generalLimiter,
+  authenticateBusiness,
+  businessController.getCashiers
+);
+
+/**
+ * @swagger
  * /api/business/{id}:
  *   get:
  *     summary: Get public business details
@@ -658,60 +714,6 @@ router.post('/cashiers',
   businessController.createCashier
 );
 
-/**
- * @swagger
- * /api/business/cashiers:
- *   get:
- *     summary: Get business cashiers
- *     tags: [Business Management]
- *     description: Retrieve all cashiers for the business
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 20
- *         description: Items per page
- *     responses:
- *       200:
- *         description: Cashiers retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Cashiers retrieved successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     cashiers:
- *                       type: array
- *                       items:
- *                         type: object
- *                         description: Cashier information
- *                     pagination:
- *                       type: object
- */
-router.get('/cashiers',
-  generalLimiter,
-  businessController.getCashiers
-);
 
 /**
  * @swagger
