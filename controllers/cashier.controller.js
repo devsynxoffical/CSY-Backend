@@ -185,7 +185,14 @@ class CashierController {
 
       const { page = 1, limit = 20, status, startDate, endDate } = req.query;
 
-      const where = { business_id: cashier.business_id };
+      // Order doesn't have business_id, so we filter through OrderItem
+      const where = {
+        order_items: {
+          some: {
+            business_id: cashier.business_id
+          }
+        }
+      };
 
       if (status) {
         where.status = status;
@@ -201,7 +208,22 @@ class CashierController {
         prisma.order.findMany({
           where,
           include: {
-            user: { select: { id: true, full_name: true, phone: true } }
+            user: { select: { id: true, full_name: true, phone: true } },
+            order_items: {
+              where: {
+                business_id: cashier.business_id
+              },
+              include: {
+                product: {
+                  select: {
+                    id: true,
+                    name: true,
+                    price: true,
+                    image_url: true
+                  }
+                }
+              }
+            }
           },
           orderBy: { created_at: 'desc' },
           skip: (parseInt(page) - 1) * parseInt(limit),

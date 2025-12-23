@@ -1704,7 +1704,14 @@ CSY Pro Team`
       const businessId = req.business.id;
       const { page = 1, limit = 20, status, startDate, endDate } = req.query;
 
-      const whereClause = { business_id: businessId };
+      // Order doesn't have business_id, so we filter through OrderItem
+      const whereClause = {
+        order_items: {
+          some: {
+            business_id: businessId
+          }
+        }
+      };
 
       if (status) {
         whereClause.status = status;
@@ -1712,8 +1719,8 @@ CSY Pro Team`
 
       if (startDate || endDate) {
         whereClause.created_at = {};
-        if (startDate) whereClause.created_at.$gte = new Date(startDate);
-        if (endDate) whereClause.created_at.$lte = new Date(endDate);
+        if (startDate) whereClause.created_at.gte = new Date(startDate);
+        if (endDate) whereClause.created_at.lte = new Date(endDate);
       }
 
       const [orders, total] = await Promise.all([
@@ -1722,6 +1729,21 @@ CSY Pro Team`
           include: {
             user: {
               select: { id: true, full_name: true, phone: true }
+            },
+            order_items: {
+              where: {
+                business_id: businessId
+              },
+              include: {
+                product: {
+                  select: {
+                    id: true,
+                    name: true,
+                    price: true,
+                    image_url: true
+                  }
+                }
+              }
             }
           },
           orderBy: { created_at: 'desc' },
