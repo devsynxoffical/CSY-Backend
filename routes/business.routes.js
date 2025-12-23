@@ -308,6 +308,86 @@ router.get('/cashiers',
 
 /**
  * @swagger
+ * /api/business/financials:
+ *   get:
+ *     summary: Get financial records
+ *     tags: [Business Management]
+ *     description: Retrieve business financial transactions and records
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Items per page
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date filter (YYYY-MM-DD)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date filter (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: Financial records retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Financial records retrieved successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     financials:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                     pagination:
+ *                       type: object
+ */
+router.get('/financials',
+  generalLimiter,
+  authenticateBusiness,
+  businessController.getFinancials
+);
+
+/**
+ * @swagger
+ * /api/business/offers:
+ *   get:
+ *     summary: Get offers
+ *     tags: [Business Management]
+ */
+router.get('/offers',
+  generalLimiter,
+  authenticateBusiness,
+  businessController.getOffers
+);
+
+/**
+ * @swagger
  * /api/business/{id}:
  *   get:
  *     summary: Get public business details
@@ -1679,10 +1759,6 @@ router.post('/offers',
   businessController.createOffer
 );
 
-router.get('/offers',
-  generalLimiter,
-  businessController.getOffers
-);
 
 router.put('/offers/:id',
   generalLimiter,
