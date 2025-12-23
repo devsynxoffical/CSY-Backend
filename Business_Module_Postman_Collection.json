@@ -1,0 +1,1355 @@
+{
+	"info": {
+		"_postman_id": "business-module-collection-001",
+		"name": "CSY Backend - Business Module",
+		"description": "Complete collection for testing all Business Module endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register Business",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set(\"business_token\", jsonData.data.token);",
+									"        pm.environment.set(\"business_id\", jsonData.data.business.id);",
+									"        console.log(\"Token saved: \" + jsonData.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"owner_email\": \"owner@restaurant.com\",\n  \"business_name\": \"Delicious Restaurant\",\n  \"business_type\": \"restaurant\",\n  \"app_type\": \"pass\",\n  \"address\": \"123 Main Street\",\n  \"city\": \"Damietta\",\n  \"governorate\": \"Damietta\",\n  \"latitude\": 31.4165,\n  \"longitude\": 31.8133,\n  \"password\": \"securepassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/register",
+							"host": ["{{base_url}}"],
+							"path": ["register"]
+						},
+						"description": "Register a new business account"
+					},
+					"response": []
+				},
+				{
+					"name": "Login Business",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set(\"business_token\", jsonData.data.token);",
+									"        pm.environment.set(\"business_id\", jsonData.data.business.id);",
+									"        console.log(\"Token saved: \" + jsonData.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"owner@restaurant.com\",\n  \"password\": \"securepassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": ["{{base_url}}"],
+							"path": ["login"]
+						},
+						"description": "Login and get access token"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints"
+		},
+		{
+			"name": "Profile Management",
+			"item": [
+				{
+					"name": "Get Business Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": ["{{base_url}}"],
+							"path": ["profile"]
+						},
+						"description": "Get authenticated business profile"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Business Profile",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"business_name\": \"Updated Restaurant Name\",\n  \"address\": \"456 New Street\",\n  \"city\": \"Cairo\",\n  \"governorate\": \"Cairo\",\n  \"latitude\": 30.0444,\n  \"longitude\": 31.2357,\n  \"working_hours\": {\n    \"monday\": \"9:00-22:00\",\n    \"tuesday\": \"9:00-22:00\",\n    \"wednesday\": \"9:00-22:00\",\n    \"thursday\": \"9:00-22:00\",\n    \"friday\": \"9:00-22:00\",\n    \"saturday\": \"10:00-18:00\",\n    \"sunday\": \"closed\"\n  },\n  \"photos\": [\"https://example.com/photo1.jpg\"],\n  \"videos\": [],\n  \"has_reservations\": true,\n  \"has_delivery\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/profile",
+							"host": ["{{base_url}}"],
+							"path": ["profile"]
+						},
+						"description": "Update business profile information"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Working Hours",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"working_hours\": {\n    \"monday\": \"9:00-18:00\",\n    \"tuesday\": \"9:00-18:00\",\n    \"wednesday\": \"9:00-18:00\",\n    \"thursday\": \"9:00-18:00\",\n    \"friday\": \"9:00-18:00\",\n    \"saturday\": \"10:00-16:00\",\n    \"sunday\": \"closed\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/working-hours",
+							"host": ["{{base_url}}"],
+							"path": ["working-hours"]
+						},
+						"description": "Update business working hours"
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Photos",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"photos\": [\n    \"https://example.com/photo1.jpg\",\n    \"https://example.com/photo2.jpg\"\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/photos",
+							"host": ["{{base_url}}"],
+							"path": ["photos"]
+						},
+						"description": "Upload business photos"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Photo",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/photos/:id",
+							"host": ["{{base_url}}"],
+							"path": ["photos", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "0",
+									"description": "Photo index"
+								}
+							]
+						},
+						"description": "Delete a photo by index"
+					},
+					"response": []
+				}
+			],
+			"description": "Profile management endpoints"
+		},
+		{
+			"name": "Products Management",
+			"item": [
+				{
+					"name": "Add Product",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set(\"product_id\", jsonData.data.id);",
+									"        console.log(\"Product ID saved: \" + jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"category\": \"Main Course\",\n  \"name\": \"Grilled Chicken\",\n  \"description\": \"Tender grilled chicken with herbs\",\n  \"ingredients\": \"Chicken breast, herbs, olive oil, garlic\",\n  \"image\": \"https://example.com/chicken.jpg\",\n  \"price\": 75000,\n  \"add_ons\": [\n    {\n      \"name\": \"Extra Cheese\",\n      \"price\": 5000\n    },\n    {\n      \"name\": \"Bacon\",\n      \"price\": 10000\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/products",
+							"host": ["{{base_url}}"],
+							"path": ["products"]
+						},
+						"description": "Add a new product to the menu"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/products?page=1&limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["products"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "category",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "available",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all business products with pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Grilled Chicken\",\n  \"price\": 80000,\n  \"is_available\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/products/:id",
+							"host": ["{{base_url}}"],
+							"path": ["products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{product_id}}",
+									"description": "Product ID"
+								}
+							]
+						},
+						"description": "Update an existing product"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/products/:id",
+							"host": ["{{base_url}}"],
+							"path": ["products", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{product_id}}",
+									"description": "Product ID"
+								}
+							]
+						},
+						"description": "Delete a product from the menu"
+					},
+					"response": []
+				}
+			],
+			"description": "Product management endpoints"
+		},
+		{
+			"name": "Cashier Management",
+			"item": [
+				{
+					"name": "Create Cashier",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set(\"cashier_id\", jsonData.data.id);",
+									"        console.log(\"Cashier ID saved: \" + jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"cashier@restaurant.com\",\n  \"full_name\": \"John Smith\",\n  \"password_hash\": \"cashierpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cashiers",
+							"host": ["{{base_url}}"],
+							"path": ["cashiers"]
+						},
+						"description": "Create a new cashier account"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cashiers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/cashiers?page=1&limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["cashiers"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get all cashiers for the business"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Cashier",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"full_name\": \"John Updated Smith\",\n  \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/cashiers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["cashiers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{cashier_id}}",
+									"description": "Cashier ID"
+								}
+							]
+						},
+						"description": "Update cashier information"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Cashier",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/cashiers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["cashiers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{cashier_id}}",
+									"description": "Cashier ID"
+								}
+							]
+						},
+						"description": "Delete a cashier account"
+					},
+					"response": []
+				}
+			],
+			"description": "Cashier management endpoints"
+		},
+		{
+			"name": "Appointments",
+			"item": [
+				{
+					"name": "Add Appointment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set(\"appointment_id\", jsonData.data.id);",
+									"        console.log(\"Appointment ID saved: \" + jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"service_name\": \"Hair Cut\",\n  \"description\": \"Professional hair cutting service\",\n  \"duration\": 60,\n  \"price\": 50000,\n  \"date\": \"2024-12-25\",\n  \"start_time\": \"10:00\",\n  \"end_time\": \"11:00\",\n  \"is_available\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/appointments",
+							"host": ["{{base_url}}"],
+							"path": ["appointments"]
+						},
+						"description": "Create a new appointment slot"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Appointments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/appointments?page=1&limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["appointments"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "date",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "service_name",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all appointments for the business"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Appointment",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"service_name\": \"Updated Hair Cut\",\n  \"duration\": 90,\n  \"price\": 60000,\n  \"is_available\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/appointments/:id",
+							"host": ["{{base_url}}"],
+							"path": ["appointments", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{appointment_id}}",
+									"description": "Appointment ID"
+								}
+							]
+						},
+						"description": "Update an existing appointment"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Appointment",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/appointments/:id",
+							"host": ["{{base_url}}"],
+							"path": ["appointments", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{appointment_id}}",
+									"description": "Appointment ID"
+								}
+							]
+						},
+						"description": "Delete an appointment slot"
+					},
+					"response": []
+				}
+			],
+			"description": "Appointment management endpoints"
+		},
+		{
+			"name": "Orders Management",
+			"item": [
+				{
+					"name": "Get Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/orders?page=1&limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["orders"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "status",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "startDate",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all orders for the business"
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Order",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/orders/:id/accept",
+							"host": ["{{base_url}}"],
+							"path": ["orders", ":id", "accept"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{order_id}}",
+									"description": "Order ID"
+								}
+							]
+						},
+						"description": "Accept a pending order"
+					},
+					"response": []
+				},
+				{
+					"name": "Reject Order",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"reason\": \"Item out of stock\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/orders/:id/reject",
+							"host": ["{{base_url}}"],
+							"path": ["orders", ":id", "reject"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{order_id}}",
+									"description": "Order ID"
+								}
+							]
+						},
+						"description": "Reject a pending order"
+					},
+					"response": []
+				}
+			],
+			"description": "Order management endpoints"
+		},
+		{
+			"name": "Reservations",
+			"item": [
+				{
+					"name": "Get Reservations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/reservations?page=1&limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["reservations"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "status",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "date",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all reservations for the business"
+					},
+					"response": []
+				}
+			],
+			"description": "Reservation management endpoints"
+		},
+		{
+			"name": "Analytics & Reports",
+			"item": [
+				{
+					"name": "Get Financial Records",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/financials?page=1&limit=20",
+							"host": ["{{base_url}}"],
+							"path": ["financials"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "startDate",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get financial transactions and records"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Offers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/offers",
+							"host": ["{{base_url}}"],
+							"path": ["offers"]
+						},
+						"description": "Get all offers for the business"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Analytics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/analytics?reportType=summary",
+							"host": ["{{base_url}}"],
+							"path": ["analytics"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "reportType",
+									"value": "summary"
+								}
+							]
+						},
+						"description": "Get business analytics and reports"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/dashboard",
+							"host": ["{{base_url}}"],
+							"path": ["dashboard"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get business dashboard data"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Operations Log",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/operations-log?page=1&limit=50",
+							"host": ["{{base_url}}"],
+							"path": ["operations-log"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "50"
+								},
+								{
+									"key": "startDate",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "operation_type",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get business operations history"
+					},
+					"response": []
+				}
+			],
+			"description": "Analytics and reporting endpoints"
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Create Category",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Main Course\",\n  \"description\": \"Main course items\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/categories",
+							"host": ["{{base_url}}"],
+							"path": ["categories"]
+						},
+						"description": "Create a new category"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Categories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/categories",
+							"host": ["{{base_url}}"],
+							"path": ["categories"]
+						},
+						"description": "Get all categories"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Category",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Category Name\",\n  \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/categories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{category_id}}",
+									"description": "Category ID"
+								}
+							]
+						},
+						"description": "Update a category"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Category",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/categories/:id",
+							"host": ["{{base_url}}"],
+							"path": ["categories", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{category_id}}",
+									"description": "Category ID"
+								}
+							]
+						},
+						"description": "Delete a category"
+					},
+					"response": []
+				}
+			],
+			"description": "Category management endpoints"
+		},
+		{
+			"name": "Offers Management",
+			"item": [
+				{
+					"name": "Create Offer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"20% Off on Main Course\",\n  \"description\": \"Get 20% discount on all main course items\",\n  \"discount_percentage\": 20,\n  \"start_date\": \"2024-12-01\",\n  \"end_date\": \"2024-12-31\",\n  \"is_active\": true\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/offers",
+							"host": ["{{base_url}}"],
+							"path": ["offers"]
+						},
+						"description": "Create a new offer"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Offer",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Updated Offer Title\",\n  \"is_active\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/offers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["offers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{offer_id}}",
+									"description": "Offer ID"
+								}
+							]
+						},
+						"description": "Update an offer"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Offer",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{business_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/offers/:id",
+							"host": ["{{base_url}}"],
+							"path": ["offers", ":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{offer_id}}",
+									"description": "Offer ID"
+								}
+							]
+						},
+						"description": "Delete an offer"
+					},
+					"response": []
+				}
+			],
+			"description": "Offer management endpoints"
+		},
+		{
+			"name": "Public Endpoints",
+			"item": [
+				{
+					"name": "Get All Businesses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}?page=1&limit=20",
+							"host": ["{{base_url}}"],
+							"path": [],
+							"query": [
+								{
+									"key": "city",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "app_type",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get all businesses (public, no authentication required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Public Business Profile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/:id",
+							"host": ["{{base_url}}"],
+							"path": [":id"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{business_id}}",
+									"description": "Business ID"
+								}
+							]
+						},
+						"description": "Get public business profile (no authentication required)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Public Business Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/:id/products",
+							"host": ["{{base_url}}"],
+							"path": [":id", "products"],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{business_id}}",
+									"description": "Business ID"
+								}
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get public business products/menu (no authentication required)"
+					},
+					"response": []
+				}
+			],
+			"description": "Public endpoints (no authentication required)"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-add Authorization header for authenticated endpoints",
+					"if (pm.environment.get(\"business_token\")) {",
+					"    // Skip for public endpoints",
+					"    const publicEndpoints = [\"/\", \"/register\", \"/login\"];",
+					"    const currentPath = pm.request.url.getPath();",
+					"    const isPublic = publicEndpoints.some(endpoint => currentPath.includes(endpoint));",
+					"    ",
+					"    if (!isPublic && !pm.request.headers.has(\"Authorization\")) {",
+					"        pm.request.headers.add({",
+					"            key: \"Authorization\",",
+					"            value: \"Bearer \" + pm.environment.get(\"business_token\")",
+					"        });",
+					"    }",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script",
+					"pm.test(\"Response time is less than 5000ms\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"// Check for common error responses",
+					"if (pm.response.code >= 400) {",
+					"    const jsonData = pm.response.json();",
+					"    console.log(\"Error Response:\", JSON.stringify(jsonData, null, 2));",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000/api/business",
+			"type": "string"
+		}
+	]
+}
+
