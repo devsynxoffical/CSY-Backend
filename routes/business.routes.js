@@ -9,6 +9,7 @@ const {
   isBusiness,
   isBusinessOwner,
   validateBusinessRegistration,
+  validateAppointmentCreation,
   handleValidationErrors,
   validateUUID
 } = require('../middlewares');
