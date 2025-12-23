@@ -22,6 +22,9 @@ const authenticate = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key');
 
+    // Extract role from token (fallback to 'user' for backward compatibility)
+    const role = decoded.role || 'user';
+
     // Check if user exists and is active
     const user = await prisma.user.findUnique({
       where: {
@@ -37,7 +40,7 @@ const authenticate = async (req, res, next) => {
       });
     }
 
-    // Attach user to request object
+    // Attach user to request object with role from token
     req.user = {
       id: user.id,
       full_name: user.full_name,
@@ -48,7 +51,7 @@ const authenticate = async (req, res, next) => {
       wallet_balance: user.wallet_balance,
       points: user.points,
       is_verified: user.is_verified,
-      role: 'user' // Default role
+      role: role // Role from JWT token
     };
 
     next();
@@ -92,6 +95,7 @@ const optionalAuth = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key');
+    const role = decoded.role || 'user';
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId }
@@ -108,7 +112,7 @@ const optionalAuth = async (req, res, next) => {
         wallet_balance: user.wallet_balance,
         points: user.points,
         is_verified: user.is_verified,
-        role: 'user'
+        role: role // Role from JWT token
       };
     } else {
       req.user = null;
@@ -141,6 +145,7 @@ const authenticateBusiness = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key');
+    const role = decoded.role || 'business';
 
     // Check if business exists and is active
     const business = await prisma.business.findUnique({
@@ -155,7 +160,7 @@ const authenticateBusiness = async (req, res, next) => {
       });
     }
 
-    // Attach business to request object
+    // Attach business to request object with role
     req.business = {
       id: business.id,
       owner_email: business.owner_email,
@@ -174,7 +179,8 @@ const authenticateBusiness = async (req, res, next) => {
       rating_count: business.rating_count,
       has_reservations: business.has_reservations,
       has_delivery: business.has_delivery,
-      is_active: business.is_active
+      is_active: business.is_active,
+      role: role // Role from JWT token
     };
 
     next();
@@ -223,6 +229,7 @@ const authenticateDriver = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key');
+    const role = decoded.role || 'driver';
 
     // Check if driver exists and is active
     const driver = await prisma.driver.findUnique({
@@ -237,7 +244,7 @@ const authenticateDriver = async (req, res, next) => {
       });
     }
 
-    // Attach driver to request object
+    // Attach driver to request object with role from token
     req.user = {
       id: driver.id,
       full_name: driver.full_name,
@@ -254,7 +261,7 @@ const authenticateDriver = async (req, res, next) => {
       is_active: driver.is_active,
       rating_average: driver.rating_average,
       rating_count: driver.rating_count,
-      role: 'driver'
+      role: role // Role from JWT token
     };
 
     next();
@@ -303,6 +310,7 @@ const authenticateCashier = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key');
+    const role = decoded.role || 'cashier';
 
     // Check if cashier exists and is active
     const cashier = await prisma.cashier.findUnique({
@@ -317,14 +325,14 @@ const authenticateCashier = async (req, res, next) => {
       });
     }
 
-    // Attach cashier to request object
+    // Attach cashier to request object with role from token
     req.user = {
       id: cashier.id,
       business_id: cashier.business_id,
       full_name: cashier.full_name,
       email: cashier.email,
       is_active: cashier.is_active,
-      role: 'cashier'
+      role: role // Role from JWT token
     };
 
     next();

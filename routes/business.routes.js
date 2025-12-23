@@ -438,8 +438,7 @@ router.get('/:id/products',
 );
 
 
-// All routes below require business authentication
-router.use(authenticateBusiness);
+// All authenticated routes are defined below with individual authenticateBusiness middleware
 
 /**
  * @swagger
@@ -524,6 +523,7 @@ router.use(authenticateBusiness);
  */
 router.get('/profile',
   generalLimiter,
+  authenticateBusiness,
   businessController.getProfile
 );
 
@@ -609,6 +609,7 @@ router.get('/profile',
  */
 router.put('/profile',
   generalLimiter,
+  authenticateBusiness,
   businessController.updateProfile
 );
 
@@ -662,6 +663,7 @@ router.put('/profile',
  */
 router.put('/working-hours',
   generalLimiter,
+  authenticateBusiness,
   businessController.updateWorkingHours
 );
 
@@ -700,6 +702,7 @@ router.put('/working-hours',
  */
 router.post('/photos',
   generalLimiter,
+  authenticateBusiness,
   businessController.uploadPhotos
 );
 
@@ -731,6 +734,7 @@ router.post('/photos',
  */
 router.delete('/photos/:id',
   generalLimiter,
+  authenticateBusiness,
   businessController.deletePhoto
 );
 
@@ -835,7 +839,8 @@ router.post('/cashiers',
  */
 router.put('/cashiers/:id',
   generalLimiter,
-  ...validateUUID,
+  authenticateBusiness,
+  validateUUID,
   businessController.updateCashier
 );
 
@@ -866,7 +871,8 @@ router.put('/cashiers/:id',
  */
 router.delete('/cashiers/:id',
   generalLimiter,
-  ...validateUUID,
+  authenticateBusiness,
+  validateUUID,
   businessController.deleteCashier
 );
 
@@ -897,7 +903,8 @@ router.delete('/cashiers/:id',
  */
 router.put('/orders/:id/accept',
   generalLimiter,
-  ...validateUUID,
+  authenticateBusiness,
+  validateUUID,
   businessController.acceptOrder
 );
 
@@ -939,7 +946,8 @@ router.put('/orders/:id/accept',
  */
 router.put('/orders/:id/reject',
   generalLimiter,
-  ...validateUUID,
+  authenticateBusiness,
+  validateUUID,
   businessController.rejectOrder
 );
 
@@ -1006,6 +1014,7 @@ router.put('/orders/:id/reject',
  */
 router.get('/appointments',
   generalLimiter,
+  authenticateBusiness,
   businessController.getAppointments
 );
 
@@ -1160,7 +1169,8 @@ router.post('/appointments',
  */
 router.put('/appointments/:id',
   generalLimiter,
-  ...validateUUID,
+  authenticateBusiness,
+  validateUUID,
   businessController.updateAppointment
 );
 
@@ -1191,7 +1201,8 @@ router.put('/appointments/:id',
  */
 router.delete('/appointments/:id',
   generalLimiter,
-  ...validateUUID,
+  authenticateBusiness,
+  validateUUID,
   businessController.deleteAppointment
 );
 
@@ -1275,6 +1286,7 @@ router.delete('/appointments/:id',
  */
 router.post('/products',
   generalLimiter,
+  authenticateBusiness,
   businessController.addProduct
 );
 
@@ -1344,7 +1356,8 @@ router.post('/products',
  */
 router.put('/products/:id',
   generalLimiter,
-  ...validateUUID,
+  authenticateBusiness,
+  validateUUID,
   businessController.updateProduct
 );
 
@@ -1375,7 +1388,8 @@ router.put('/products/:id',
  */
 router.delete('/products/:id',
   generalLimiter,
-  ...validateUUID,
+  authenticateBusiness,
+  validateUUID,
   businessController.deleteProduct
 );
 
@@ -1442,6 +1456,7 @@ router.delete('/products/:id',
  */
 router.get('/analytics',
   generalLimiter,
+  authenticateBusiness,
   businessController.getAnalytics
 );
 
@@ -1603,6 +1618,7 @@ router.get('/analytics',
  */
 router.get('/operations-log',
   generalLimiter,
+  authenticateBusiness,
   businessController.getOperationsLog
 );
 
@@ -1711,6 +1727,7 @@ router.get('/operations-log',
  */
 router.get('/dashboard',
   generalLimiter,
+  authenticateBusiness,
   businessController.getDashboard
 );
 
@@ -1723,23 +1740,27 @@ router.get('/dashboard',
  */
 router.post('/categories',
   generalLimiter,
+  authenticateBusiness,
   businessController.createCategory
 );
 
 router.get('/categories',
   generalLimiter,
+  authenticateBusiness,
   businessController.getCategories
 );
 
 router.put('/categories/:id',
   generalLimiter,
-  ...validateUUID,
+  authenticateBusiness,
+  validateUUID,
   businessController.updateCategory
 );
 
 router.delete('/categories/:id',
   generalLimiter,
-  ...validateUUID,
+  authenticateBusiness,
+  validateUUID,
   businessController.deleteCategory
 );
 
@@ -1752,19 +1773,22 @@ router.delete('/categories/:id',
  */
 router.post('/offers',
   generalLimiter,
+  authenticateBusiness,
   businessController.createOffer
 );
 
 
 router.put('/offers/:id',
   generalLimiter,
-  ...validateUUID,
+  authenticateBusiness,
+  validateUUID,
   businessController.updateOffer
 );
 
 router.delete('/offers/:id',
   generalLimiter,
-  ...validateUUID,
+  authenticateBusiness,
+  validateUUID,
   businessController.deleteOffer
 );
 
@@ -1840,6 +1864,7 @@ router.delete('/offers/:id',
  */
 router.get('/products',
   generalLimiter,
+  authenticateBusiness,
   businessController.getProducts
 );
 
@@ -1922,6 +1947,7 @@ router.get('/products',
  */
 router.get('/orders',
   generalLimiter,
+  authenticateBusiness,
   businessController.getOrders
 );
 
@@ -1998,6 +2024,7 @@ router.get('/orders',
  */
 router.get('/reservations',
   generalLimiter,
+  authenticateBusiness,
   businessController.getReservations
 );
 

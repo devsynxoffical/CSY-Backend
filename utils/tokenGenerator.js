@@ -4,13 +4,15 @@ const jwt = require('jsonwebtoken');
 /**
  * Generate JWT access token
  * @param {string} userId - User ID
+ * @param {string} role - User role (user, business, driver, cashier, admin)
  * @param {Object} payload - Additional payload data
  * @param {string} expiresIn - Token expiration (default '24h')
  * @returns {string} JWT token
  */
-const generateToken = (userId, payload = {}, expiresIn = '24h') => {
+const generateToken = (userId, role = 'user', payload = {}, expiresIn = '24h') => {
   const jwtPayload = {
     userId,
+    role, // Include role in token
     ...payload,
     iat: Math.floor(Date.now() / 1000)
   };

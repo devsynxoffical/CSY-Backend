@@ -98,8 +98,8 @@ class AuthController {
         // Don't fail registration if emails fail
       }
 
-      // Generate JWT token
-      const token = generateToken(user.id);
+      // Generate JWT token with role
+      const token = generateToken(user.id, 'user');
 
       // Cache user session
       await CacheService.setUserSession(user.id, {
@@ -186,8 +186,8 @@ class AuthController {
         });
       }
 
-      // Generate JWT token
-      const token = generateToken(user.id);
+      // Generate JWT token with role
+      const token = generateToken(user.id, 'user');
 
       // Update last login
       await prisma.user.update({
@@ -675,8 +675,8 @@ class AuthController {
         });
       }
 
-      // Generate token for verified user
-      const token = generateToken(user.id);
+      // Generate token for verified user with role
+      const token = generateToken(user.id, 'user');
 
       logger.info('OTP verified successfully', { userId: user.id, phone, usedFixedOTP: otp === FIXED_OTP });
 
