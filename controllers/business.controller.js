@@ -1981,8 +1981,8 @@ CSY Pro Team`
         endOfDay.setHours(23, 59, 59, 999);
 
         whereClause.date = {
-          $gte: startOfDay,
-          $lte: endOfDay
+          gte: startOfDay,
+          lte: endOfDay
         };
       }
 
