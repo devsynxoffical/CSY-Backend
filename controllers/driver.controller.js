@@ -744,7 +744,7 @@ class DriverController {
             order_items: {
               take: 1, // Get first order item to get business info
               include: {
-                business: {
+            business: {
                   select: { 
                     id: true,
                     business_name: true, 

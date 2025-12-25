@@ -216,184 +216,8 @@ router.post('/',
  *                         totalPages:
  *                           type: integer
  */
-router.get('/',
-  generalLimiter,
-  reservationController.getUserReservations
-);
-
-/**
- * @swagger
- * /api/reservations/{id}:
- *   get:
- *     summary: Get reservation details
- *     tags: [Reservation Management]
- *     description: Retrieve detailed information about a specific reservation
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Reservation ID
- *         example: "60d5ecb74b24c72b8c8b4567"
- *     responses:
- *       200:
- *         description: Reservation details retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Reservation details retrieved successfully"
- *                 data:
- *                   type: object
- *                   description: Complete reservation data with business and rating information
- */
-router.get('/:id',
-  generalLimiter,
-  ...validateUUID,
-  reservationController.getReservation
-);
-
-/**
- * @swagger
- * /api/reservations/{id}:
- *   put:
- *     summary: Update reservation
- *     tags: [Reservation Management]
- *     description: Update reservation details (time, duration, number of people, notes)
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Reservation ID
- *         example: "60d5ecb74b24c72b8c8b4567"
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               time:
- *                 type: string
- *                 pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
- *                 description: New reservation time (HH:MM)
- *                 example: "20:00"
- *               duration:
- *                 type: integer
- *                 minimum: 15
- *                 maximum: 480
- *                 description: New reservation duration in minutes
- *                 example: 90
- *               number_of_people:
- *                 type: integer
- *                 minimum: 1
- *                 maximum: 50
- *                 description: New number of people
- *                 example: 6
- *               notes:
- *                 type: string
- *                 maxLength: 500
- *                 description: Updated notes
- *                 example: "Birthday celebration - please add candles"
- *     responses:
- *       200:
- *         description: Reservation updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Reservation updated successfully"
- *                 data:
- *                   type: object
- *                   description: Updated reservation data
- */
-router.put('/:id',
-  generalLimiter,
-  ...validateUUID,
-  reservationController.updateReservation
-);
-
-/**
- * @swagger
- * /api/reservations/{id}/cancel:
- *   delete:
- *     summary: Cancel reservation
- *     tags: [Reservation Management]
- *     description: Cancel a reservation with optional reason
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: Reservation ID
- *         example: "60d5ecb74b24c72b8c8b4567"
- *     requestBody:
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               reason:
- *                 type: string
- *                 maxLength: 500
- *                 description: Reason for cancellation
- *                 example: "Emergency situation"
- *     responses:
- *       200:
- *         description: Reservation cancelled successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Reservation cancelled successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     reservationId:
- *                       type: string
- *                     status:
- *                       type: string
- *                       example: "cancelled"
- *                     cancelled_at:
- *                       type: string
- *                       format: date-time
- *                     refund_eligible:
- *                       type: boolean
- *                       description: Whether refund is eligible
- */
-router.delete('/:id/cancel',
-  generalLimiter,
-  ...validateUUID,
-  reservationController.cancelReservation
-);
+// IMPORTANT: Specific routes (like /availability) must come BEFORE parameterized routes (like /:id)
+// Otherwise Express will match /availability as /:id with id="availability"
 
 /**
  * @swagger
@@ -465,6 +289,185 @@ router.get('/availability',
   reservationController.getAvailableSlots
 );
 
+router.get('/',
+  generalLimiter,
+  reservationController.getUserReservations
+);
+
+/**
+ * @swagger
+ * /api/reservations/{id}:
+ *   get:
+ *     summary: Get reservation details
+ *     tags: [Reservation Management]
+ *     description: Retrieve detailed information about a specific reservation
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Reservation ID
+ *         example: "60d5ecb74b24c72b8c8b4567"
+ *     responses:
+ *       200:
+ *         description: Reservation details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Reservation details retrieved successfully"
+ *                 data:
+ *                   type: object
+ *                   description: Complete reservation data with business and rating information
+ */
+router.get('/:id',
+  generalLimiter,
+  validateUUID,
+  reservationController.getReservation
+);
+
+/**
+ * @swagger
+ * /api/reservations/{id}:
+ *   put:
+ *     summary: Update reservation
+ *     tags: [Reservation Management]
+ *     description: Update reservation details (time, duration, number of people, notes)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Reservation ID
+ *         example: "60d5ecb74b24c72b8c8b4567"
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               time:
+ *                 type: string
+ *                 pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+ *                 description: New reservation time (HH:MM)
+ *                 example: "20:00"
+ *               duration:
+ *                 type: integer
+ *                 minimum: 15
+ *                 maximum: 480
+ *                 description: New reservation duration in minutes
+ *                 example: 90
+ *               number_of_people:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 50
+ *                 description: New number of people
+ *                 example: 6
+ *               notes:
+ *                 type: string
+ *                 maxLength: 500
+ *                 description: Updated notes
+ *                 example: "Birthday celebration - please add candles"
+ *     responses:
+ *       200:
+ *         description: Reservation updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Reservation updated successfully"
+ *                 data:
+ *                   type: object
+ *                   description: Updated reservation data
+ */
+router.put('/:id',
+  generalLimiter,
+  validateUUID,
+  reservationController.updateReservation
+);
+
+/**
+ * @swagger
+ * /api/reservations/{id}/cancel:
+ *   delete:
+ *     summary: Cancel reservation
+ *     tags: [Reservation Management]
+ *     description: Cancel a reservation with optional reason
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Reservation ID
+ *         example: "60d5ecb74b24c72b8c8b4567"
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 maxLength: 500
+ *                 description: Reason for cancellation
+ *                 example: "Emergency situation"
+ *     responses:
+ *       200:
+ *         description: Reservation cancelled successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Reservation cancelled successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     reservationId:
+ *                       type: string
+ *                     status:
+ *                       type: string
+ *                       example: "cancelled"
+ *                     cancelled_at:
+ *                       type: string
+ *                       format: date-time
+ *                     refund_eligible:
+ *                       type: boolean
+ *                       description: Whether refund is eligible
+ */
+router.delete('/:id/cancel',
+  generalLimiter,
+  validateUUID,
+  reservationController.cancelReservation
+);
+
 /**
  * @swagger
  * /api/reservations/{id}/rate:
@@ -522,7 +525,7 @@ router.get('/availability',
  */
 router.post('/:id/rate',
   generalLimiter,
-  ...validateUUID,
+  validateUUID,
   reservationController.rateReservation
 );
 

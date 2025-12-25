@@ -1,0 +1,32 @@
+{
+	"id": "reservation-api-env-001",
+	"name": "CSY Reservation API - Local",
+	"values": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000/api",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "user_token",
+			"value": "",
+			"type": "secret",
+			"enabled": true
+		},
+		{
+			"key": "business_id",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "reservation_id",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment"
+}
+

@@ -487,6 +487,7 @@ model Order {
   delivery_fee     Decimal       @default(0) @db.Decimal(10, 2)
   final_amount     Decimal       @db.Decimal(10, 2)
   qr_code          String?
+  actual_delivery_time DateTime? // When order was actually delivered
   created_at       DateTime      @default(now())
   updated_at       DateTime      @updatedAt
 

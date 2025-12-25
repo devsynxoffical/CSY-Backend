@@ -1,0 +1,413 @@
+{
+	"info": {
+		"_postman_id": "reservation-api-collection-001",
+		"name": "CSY Backend - Reservation API",
+		"description": "Complete collection for testing all Reservation endpoints",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create Reservation",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if (pm.response.code === 201) {",
+							"    const jsonData = pm.response.json();",
+							"    if (jsonData.data && jsonData.data.reservation) {",
+							"        pm.environment.set(\"reservation_id\", jsonData.data.reservation.id);",
+							"        pm.environment.set(\"business_id\", jsonData.data.reservation.business_id);",
+							"        console.log(\"Reservation ID saved: \" + jsonData.data.reservation.id);",
+							"    }",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"business_id\": \"{{business_id}}\",\n  \"reservation_type\": \"table\",\n  \"date\": \"2024-12-25\",\n  \"time\": \"19:30\",\n  \"duration\": 120,\n  \"number_of_people\": 4,\n  \"payment_method\": \"online\",\n  \"notes\": \"Window seat preferred\",\n  \"amount\": 50000\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/reservations",
+					"host": ["{{base_url}}"],
+					"path": ["reservations"]
+				},
+				"description": "Create a new reservation at a business"
+			},
+			"response": []
+		},
+		{
+			"name": "Get User Reservations",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/reservations?page=1&limit=20",
+					"host": ["{{base_url}}"],
+					"path": ["reservations"],
+					"query": [
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "limit",
+							"value": "20"
+						},
+						{
+							"key": "status",
+							"value": "",
+							"disabled": true,
+							"description": "Filter by status: pending, confirmed, cancelled, completed, expired"
+						},
+						{
+							"key": "upcoming",
+							"value": "",
+							"disabled": true,
+							"description": "Show only upcoming reservations: true/false"
+						}
+					]
+				},
+				"description": "Get all reservations for the authenticated user"
+			},
+			"response": []
+		},
+		{
+			"name": "Get Reservation Details",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/reservations/:id",
+					"host": ["{{base_url}}"],
+					"path": ["reservations", ":id"],
+					"variable": [
+						{
+							"key": "id",
+							"value": "{{reservation_id}}",
+							"description": "Reservation ID"
+						}
+					]
+				},
+				"description": "Get detailed information about a specific reservation"
+			},
+			"response": []
+		},
+		{
+			"name": "Update Reservation",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"time\": \"20:00\",\n  \"duration\": 90,\n  \"number_of_people\": 6,\n  \"notes\": \"Birthday celebration - please add candles\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/reservations/:id",
+					"host": ["{{base_url}}"],
+					"path": ["reservations", ":id"],
+					"variable": [
+						{
+							"key": "id",
+							"value": "{{reservation_id}}",
+							"description": "Reservation ID"
+						}
+					]
+				},
+				"description": "Update reservation details (time, duration, number of people, notes)"
+			},
+			"response": []
+		},
+		{
+			"name": "Cancel Reservation",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"reason\": \"Emergency situation\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/reservations/:id/cancel",
+					"host": ["{{base_url}}"],
+					"path": ["reservations", ":id", "cancel"],
+					"variable": [
+						{
+							"key": "id",
+							"value": "{{reservation_id}}",
+							"description": "Reservation ID"
+						}
+					]
+				},
+				"description": "Cancel a reservation with optional reason"
+			},
+			"response": []
+		},
+		{
+			"name": "Check Availability",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/reservations/availability?businessId={{business_id}}&date=2024-12-25&duration=60",
+					"host": ["{{base_url}}"],
+					"path": ["reservations", "availability"],
+					"query": [
+						{
+							"key": "businessId",
+							"value": "{{business_id}}",
+							"description": "Business ID"
+						},
+						{
+							"key": "date",
+							"value": "2024-12-25",
+							"description": "Date to check (YYYY-MM-DD)"
+						},
+						{
+							"key": "duration",
+							"value": "60",
+							"description": "Reservation duration in minutes (default: 60)"
+						}
+					]
+				},
+				"description": "Get available time slots for a business on a specific date"
+			},
+			"response": []
+		},
+		{
+			"name": "Rate Reservation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"stars\": 5,\n  \"comment\": \"Excellent service and great food!\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/reservations/:id/rate",
+					"host": ["{{base_url}}"],
+					"path": ["reservations", ":id", "rate"],
+					"variable": [
+						{
+							"key": "id",
+							"value": "{{reservation_id}}",
+							"description": "Reservation ID"
+						}
+					]
+				},
+				"description": "Submit a rating and review for a completed reservation"
+			},
+			"response": []
+		},
+		{
+			"name": "Create Table Reservation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"business_id\": \"{{business_id}}\",\n  \"reservation_type\": \"table\",\n  \"date\": \"2024-12-25\",\n  \"time\": \"19:30\",\n  \"duration\": 120,\n  \"number_of_people\": 4,\n  \"payment_method\": \"online\",\n  \"notes\": \"Window seat preferred\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/reservations",
+					"host": ["{{base_url}}"],
+					"path": ["reservations"]
+				},
+				"description": "Create a table reservation (restaurant/cafe)"
+			},
+			"response": []
+		},
+		{
+			"name": "Create Medical Reservation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"business_id\": \"{{business_id}}\",\n  \"reservation_type\": \"medical\",\n  \"date\": \"2024-12-25\",\n  \"time\": \"10:00\",\n  \"duration\": 60,\n  \"number_of_people\": 1,\n  \"payment_method\": \"online\",\n  \"specialty\": \"Cardiology\",\n  \"notes\": \"Follow-up appointment\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/reservations",
+					"host": ["{{base_url}}"],
+					"path": ["reservations"]
+				},
+				"description": "Create a medical appointment reservation"
+			},
+			"response": []
+		},
+		{
+			"name": "Create Beauty Reservation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"business_id\": \"{{business_id}}\",\n  \"reservation_type\": \"beauty\",\n  \"date\": \"2024-12-25\",\n  \"time\": \"14:00\",\n  \"duration\": 90,\n  \"number_of_people\": 1,\n  \"payment_method\": \"cash\",\n  \"specialty\": \"Hair Cut\",\n  \"notes\": \"Trim and style\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/reservations",
+					"host": ["{{base_url}}"],
+					"path": ["reservations"]
+				},
+				"description": "Create a beauty salon appointment reservation"
+			},
+			"response": []
+		},
+		{
+			"name": "Create Activity Reservation",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{user_token}}"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"business_id\": \"{{business_id}}\",\n  \"reservation_type\": \"activity\",\n  \"date\": \"2024-12-25\",\n  \"time\": \"15:00\",\n  \"duration\": 120,\n  \"number_of_people\": 2,\n  \"payment_method\": \"online\",\n  \"notes\": \"Recreational activity booking\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/reservations",
+					"host": ["{{base_url}}"],
+					"path": ["reservations"]
+				},
+				"description": "Create an activity/recreational reservation"
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-add Authorization header for authenticated endpoints",
+					"if (pm.environment.get(\"user_token\")) {",
+					"    if (!pm.request.headers.has(\"Authorization\")) {",
+					"        pm.request.headers.add({",
+					"            key: \"Authorization\",",
+					"            value: \"Bearer \" + pm.environment.get(\"user_token\")",
+					"        });",
+					"    }",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test script",
+					"pm.test(\"Response time is less than 5000ms\", function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});",
+					"",
+					"// Check for common error responses",
+					"if (pm.response.code >= 400) {",
+					"    const jsonData = pm.response.json();",
+					"    console.log(\"Error Response:\", JSON.stringify(jsonData, null, 2));",
+					"}"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000/api",
+			"type": "string"
+		}
+	]
+}
+

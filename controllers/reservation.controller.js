@@ -172,7 +172,7 @@ class ReservationController {
 
       if (upcoming === 'true') {
         whereClause.date = {
-          [Op.gte]: new Date()
+          gte: new Date()
         };
       }
 
@@ -185,8 +185,7 @@ class ReservationController {
                 id: true,
                 business_name: true,
                 business_type: true,
-                address: true,
-                phone: true // Note: phone might not be in Business model, check schema
+                address: true
               }
             }
           },

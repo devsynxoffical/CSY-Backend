@@ -394,7 +394,7 @@ CSY Pro Team`
 
       const whereClause = {
         business_id: id,
-        is_active: true
+        is_available: true
       };
 
       if (category) whereClause.category = category;
@@ -1190,19 +1190,22 @@ CSY Pro Team`
         endOfDay.setHours(23, 59, 59, 999);
 
         whereClause.date = {
-          $gte: startOfDay,
-          $lte: endOfDay
+          gte: startOfDay,
+          lte: endOfDay
         };
       }
 
       if (service_name) {
-        whereClause.service_name = new RegExp(service_name, 'i');
+        whereClause.service_name = {
+          contains: service_name,
+          mode: 'insensitive'
+        };
       }
 
       const [appointments, total] = await Promise.all([
         prisma.appointment.findMany({
           where: whereClause,
-          orderBy: [{ date: 'desc' }, { start_time: 'desc' }],
+          orderBy: [{ date: 'desc' }, { time: 'desc' }],
           skip: (parseInt(page) - 1) * parseInt(limit),
           take: parseInt(limit)
         }),
@@ -1338,7 +1341,15 @@ CSY Pro Team`
       const filteredUpdates = {};
       Object.keys(updates).forEach(key => {
         if (allowedFields.includes(key)) {
-          filteredUpdates[key] = updates[key];
+          // Map start_time to time (schema field name)
+          if (key === 'start_time') {
+            filteredUpdates.time = updates[key];
+          } else if (key === 'end_time') {
+            // end_time is not stored in schema, we can ignore it or store it differently
+            // For now, we'll ignore it since schema only has 'time' field
+          } else {
+            filteredUpdates[key] = updates[key];
+          }
         }
       });
 
@@ -1349,8 +1360,6 @@ CSY Pro Team`
           error: 'Please provide at least one valid field to update'
         });
       }
-
-      filteredUpdates.updated_at = new Date();
 
       const updatedAppointment = await prisma.appointment.update({
         where: { id: appointmentId },

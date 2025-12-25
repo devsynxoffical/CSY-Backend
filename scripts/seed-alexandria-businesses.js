@@ -12,6 +12,39 @@ async function seed() {
     console.log('🌱 Seeding Alexandria businesses...\n');
 
     try {
+        // Test database connection first with retry logic
+        console.log('🔌 Testing database connection...');
+        const maxRetries = 3;
+        let retryCount = 0;
+        let connected = false;
+
+        while (retryCount < maxRetries && !connected) {
+            try {
+                await prisma.$connect();
+                console.log('✅ Database connection successful!\n');
+                connected = true;
+            } catch (connError) {
+                retryCount++;
+                if (retryCount < maxRetries) {
+                    console.log(`⚠️  Connection attempt ${retryCount} failed. Retrying in ${retryCount * 2} seconds...`);
+                    await new Promise(resolve => setTimeout(resolve, retryCount * 2000));
+                } else {
+                    console.error('\n❌ Database Connection Failed after ' + maxRetries + ' attempts!\n');
+                    console.error('Error:', connError.message);
+                    console.error('\n💡 Troubleshooting Steps:');
+                    console.error('   1. Go to Railway Dashboard: https://railway.app');
+                    console.error('   2. Find your PostgreSQL database service');
+                    console.error('   3. If it shows "Paused", click "Wake" or "Start"');
+                    console.error('   4. Wait 30-60 seconds for database to start');
+                    console.error('   5. Verify DATABASE_URL in .env file is correct');
+                    console.error('   6. Check network connectivity\n');
+                    console.error('📋 Your DATABASE_URL:');
+                    console.error('   ' + process.env.DATABASE_URL?.replace(/:[^:@]+@/, ':****@') || 'Not found in .env\n');
+                    throw new Error('Database connection failed. Please ensure the Railway database is active and running.');
+                }
+            }
+        }
+
         const hashedPassword = await bcrypt.hash('password123', 12);
 
         // Alexandria coordinates
@@ -43,7 +76,12 @@ async function seed() {
                     friday: '12:00-23:00',
                     saturday: '12:00-23:00'
                 },
-                photos: ['https://example.com/restaurant1.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
+                    'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800',
+                    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800'
+                ],
+                videos: []
             },
             {
                 owner_email: 'alex_cafe1@test.com',
@@ -68,7 +106,12 @@ async function seed() {
                     friday: '8:00-22:00',
                     saturday: '8:00-22:00'
                 },
-                photos: ['https://example.com/cafe1.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800',
+                    'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800',
+                    'https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=800'
+                ],
+                videos: []
             },
             {
                 owner_email: 'alex_fastfood1@test.com',
@@ -93,7 +136,12 @@ async function seed() {
                     friday: '10:00-02:00',
                     saturday: '10:00-02:00'
                 },
-                photos: ['https://example.com/fastfood1.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800',
+                    'https://images.unsplash.com/photo-1551782450-a2132b4ba21d?w=800',
+                    'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800'
+                ],
+                videos: []
             },
             {
                 owner_email: 'alex_juice1@test.com',
@@ -118,7 +166,12 @@ async function seed() {
                     friday: '9:00-23:00',
                     saturday: '9:00-23:00'
                 },
-                photos: ['https://example.com/juice1.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=800',
+                    'https://images.unsplash.com/photo-1603561591411-07134e71a2a9?w=800',
+                    'https://images.unsplash.com/photo-1600271886742-f049cd451bba?w=800'
+                ],
+                videos: []
             },
             {
                 owner_email: 'alex_dessert1@test.com',
@@ -143,7 +196,12 @@ async function seed() {
                     friday: '14:00-23:00',
                     saturday: '14:00-23:00'
                 },
-                photos: ['https://example.com/dessert1.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=800',
+                    'https://images.unsplash.com/photo-1563805042-7684c019e1b3?w=800',
+                    'https://images.unsplash.com/photo-1551024506-0bccd828d307?w=800'
+                ],
+                videos: []
             },
             {
                 owner_email: 'alex_restaurant2@test.com',
@@ -168,7 +226,12 @@ async function seed() {
                     friday: '13:00-23:00',
                     saturday: '13:00-23:00'
                 },
-                photos: ['https://example.com/restaurant2.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+                    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
+                    'https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=800'
+                ],
+                videos: []
             },
             {
                 owner_email: 'alex_cafe2@test.com',
@@ -193,7 +256,12 @@ async function seed() {
                     friday: '7:00-21:00',
                     saturday: '7:00-21:00'
                 },
-                photos: ['https://example.com/cafe2.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800',
+                    'https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=800',
+                    'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800'
+                ],
+                videos: []
             },
             {
                 owner_email: 'alex_supermarket1@test.com',
@@ -218,7 +286,12 @@ async function seed() {
                     friday: '8:00-22:00',
                     saturday: '8:00-22:00'
                 },
-                photos: ['https://example.com/supermarket1.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1556910096-6f5e72db6803?w=800',
+                    'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800',
+                    'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800'
+                ],
+                videos: []
             },
             {
                 owner_email: 'alex_pharmacy1@test.com',
@@ -243,7 +316,12 @@ async function seed() {
                     friday: '9:00-22:00',
                     saturday: '9:00-22:00'
                 },
-                photos: ['https://example.com/pharmacy1.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=800',
+                    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800',
+                    'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=800'
+                ],
+                videos: []
             },
             {
                 owner_email: 'alex_clinic1@test.com',
@@ -268,7 +346,12 @@ async function seed() {
                     friday: '10:00-18:00',
                     saturday: '10:00-18:00'
                 },
-                photos: ['https://example.com/clinic1.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800',
+                    'https://images.unsplash.com/photo-1512678080530-4c0b1a0b0b0b?w=800',
+                    'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=800'
+                ],
+                videos: []
             },
             {
                 owner_email: 'alex_beauty1@test.com',
@@ -293,7 +376,12 @@ async function seed() {
                     friday: '10:00-20:00',
                     saturday: '10:00-20:00'
                 },
-                photos: ['https://example.com/beauty1.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=800',
+                    'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800',
+                    'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800'
+                ],
+                videos: []
             },
             {
                 owner_email: 'alex_restaurant3@test.com',
@@ -318,7 +406,12 @@ async function seed() {
                     friday: '12:00-23:00',
                     saturday: '12:00-23:00'
                 },
-                photos: ['https://example.com/restaurant3.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800',
+                    'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+                    'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800'
+                ],
+                videos: []
             },
             {
                 owner_email: 'alex_recreational1@test.com',
@@ -343,7 +436,12 @@ async function seed() {
                     friday: '10:00-22:00',
                     saturday: '10:00-22:00'
                 },
-                photos: ['https://example.com/recreational1.jpg']
+                photos: [
+                    'https://images.unsplash.com/photo-1511593358241-7eea1f3c84e5?w=800',
+                    'https://images.unsplash.com/photo-1511884642898-4c92249e20b6?w=800',
+                    'https://images.unsplash.com/photo-1511593358241-7eea1f3c84e5?w=800'
+                ],
+                videos: []
             }
         ];
 
@@ -396,19 +494,29 @@ async function seed() {
         console.log(`   ⚠️  Skipped: ${skipped}`);
         console.log(`   📍 Total: ${businesses.length} businesses in Alexandria`);
 
-        // Count businesses by app_type
-        const passCount = await prisma.business.count({
-            where: {
-                city: 'Alexandria',
-                app_type: 'pass'
-            }
-        });
+        // Count businesses by app_type (only if we have successful operations)
+        let passCount = 0;
+        let allCount = 0;
+        
+        try {
+            passCount = await prisma.business.count({
+                where: {
+                    city: 'Alexandria',
+                    app_type: 'pass'
+                }
+            });
 
-        const allCount = await prisma.business.count({
-            where: {
-                city: 'Alexandria'
-            }
-        });
+            allCount = await prisma.business.count({
+                where: {
+                    city: 'Alexandria'
+                }
+            });
+        } catch (countError) {
+            console.log('⚠️  Could not fetch statistics (database connection issue)');
+            // Use expected counts instead
+            passCount = businesses.filter(b => b.app_type === 'pass').length;
+            allCount = businesses.length;
+        }
 
         console.log(`\n📈 Statistics:`);
         console.log(`   🎫 PASS businesses: ${passCount}`);
