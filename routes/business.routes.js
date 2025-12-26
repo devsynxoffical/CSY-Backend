@@ -388,6 +388,499 @@ router.get('/offers',
 
 /**
  * @swagger
+ * /api/business/appointments:
+ *   get:
+ *     summary: Get business appointments
+ *     tags: [Business Management]
+ *     description: Retrieve appointments for the business
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Items per page
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter by specific date (YYYY-MM-DD)
+ *       - in: query
+ *         name: service_name
+ *         schema:
+ *           type: string
+ *         description: Filter by service name
+ *     responses:
+ *       200:
+ *         description: Appointments retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Appointments retrieved successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     appointments:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         description: Appointment data
+ *                     pagination:
+ *                       type: object
+ */
+router.get('/appointments',
+  generalLimiter,
+  authenticateBusiness,
+  businessController.getAppointments
+);
+
+/**
+ * @swagger
+ * /api/business/orders:
+ *   get:
+ *     summary: Get business orders
+ *     tags: [Business Management]
+ *     description: Retrieve orders for the business
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Items per page
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, accepted, preparing, ready, completed, cancelled]
+ *         description: Filter by order status
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date filter (YYYY-MM-DD)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date filter (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: Orders retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Orders retrieved successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     orders:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         description: Order data with user information
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                         limit:
+ *                           type: integer
+ *                         total:
+ *                           type: integer
+ *                         totalPages:
+ *                           type: integer
+ */
+router.get('/orders',
+  generalLimiter,
+  authenticateBusiness,
+  businessController.getOrders
+);
+
+/**
+ * @swagger
+ * /api/business/reservations:
+ *   get:
+ *     summary: Get business reservations
+ *     tags: [Business Management]
+ *     description: Retrieve reservations for the business
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Items per page
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, confirmed, cancelled, completed, expired]
+ *         description: Filter by reservation status
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Filter by specific date (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: Reservations retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Reservations retrieved successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     reservations:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         description: Reservation data with user information
+ *                     pagination:
+ *                       type: object
+ *                       properties:
+ *                         page:
+ *                           type: integer
+ *                         limit:
+ *                           type: integer
+ *                         total:
+ *                           type: integer
+ *                         totalPages:
+ *                           type: integer
+ */
+router.get('/reservations',
+  generalLimiter,
+  authenticateBusiness,
+  businessController.getReservations
+);
+
+/**
+ * @swagger
+ * /api/business/analytics:
+ *   get:
+ *     summary: Get business analytics
+ *     tags: [Business Management]
+ *     description: Retrieve detailed business analytics and reports
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for analytics (YYYY-MM-DD)
+ *         example: "2024-01-01"
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for analytics (YYYY-MM-DD)
+ *         example: "2024-01-31"
+ *       - in: query
+ *         name: reportType
+ *         schema:
+ *           type: string
+ *           enum: [summary, orders, revenue, customers, products]
+ *           default: summary
+ *         description: Type of analytics report
+ *     responses:
+ *       200:
+ *         description: Analytics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Analytics retrieved successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     period:
+ *                       type: object
+ *                       properties:
+ *                         start:
+ *                           type: string
+ *                         end:
+ *                           type: string
+ *                         report_type:
+ *                           type: string
+ *                     analytics:
+ *                       type: object
+ *                       description: Analytics data based on report type
+ */
+router.get('/analytics',
+  generalLimiter,
+  authenticateBusiness,
+  businessController.getAnalytics
+);
+
+/**
+ * @swagger
+ * /api/business/operations-log:
+ *   get:
+ *     summary: Get operations history
+ *     tags: [Business Management]
+ *     description: Retrieve business operations and activity log
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 50
+ *         description: Items per page
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date filter (YYYY-MM-DD)
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date filter (YYYY-MM-DD)
+ *       - in: query
+ *         name: operation_type
+ *         schema:
+ *           type: string
+ *           enum: [order, reservation, product]
+ *         description: Filter by operation type
+ *     responses:
+ *       200:
+ *         description: Operations log retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Operations log retrieved successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     operations:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: string
+ *                           type:
+ *                             type: string
+ *                           operation:
+ *                             type: string
+ *                           timestamp:
+ *                             type: string
+ *                           reference_id:
+ *                             type: string
+ *                     pagination:
+ *                       type: object
+ */
+router.get('/operations-log',
+  generalLimiter,
+  authenticateBusiness,
+  businessController.getOperationsLog
+);
+
+/**
+ * @swagger
+ * /api/business/dashboard:
+ *   get:
+ *     summary: Get business dashboard
+ *     tags: [Business Management]
+ *     description: Retrieve business analytics and performance metrics
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: startDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: Start date for analytics (YYYY-MM-DD)
+ *         example: "2024-01-01"
+ *       - in: query
+ *         name: endDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *         description: End date for analytics (YYYY-MM-DD)
+ *         example: "2024-01-31"
+ *     responses:
+ *       200:
+ *         description: Dashboard data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Dashboard data retrieved successfully"
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     period:
+ *                       type: object
+ *                       properties:
+ *                         start:
+ *                           type: string
+ *                           format: date-time
+ *                         end:
+ *                           type: string
+ *                           format: date-time
+ *                     metrics:
+ *                       type: object
+ *                       properties:
+ *                         orders:
+ *                           type: object
+ *                           properties:
+ *                             total:
+ *                               type: integer
+ *                             completed:
+ *                               type: integer
+ *                             cancelled:
+ *                               type: integer
+ *                             completion_rate:
+ *                               type: number
+ *                             total_revenue:
+ *                               type: integer
+ *                         reservations:
+ *                           type: object
+ *                           properties:
+ *                             total:
+ *                               type: integer
+ *                             completed:
+ *                               type: integer
+ *                             cancelled:
+ *                               type: integer
+ *                             completion_rate:
+ *                               type: number
+ *                         ratings:
+ *                           type: object
+ *                           properties:
+ *                             average:
+ *                               type: number
+ *                             count:
+ *                               type: integer
+ *                         revenue:
+ *                           type: object
+ *                           properties:
+ *                             total:
+ *                               type: integer
+ *                             average:
+ *                               type: number
+ *                     summary:
+ *                       type: object
+ *                       properties:
+ *                         total_orders:
+ *                           type: integer
+ *                         total_reservations:
+ *                           type: integer
+ *                         average_rating:
+ *                           type: number
+ *                         total_revenue:
+ *                           type: integer
+ */
+router.get('/dashboard',
+  generalLimiter,
+  authenticateBusiness,
+  businessController.getDashboard
+);
+
+router.get('/categories',
+  generalLimiter,
+  authenticateBusiness,
+  businessController.getCategories
+);
+
+/**
+ * @swagger
  * /api/business/{id}:
  *   get:
  *     summary: Get public business details
@@ -954,73 +1447,6 @@ router.put('/orders/:id/reject',
 /**
  * @swagger
  * /api/business/appointments:
- *   get:
- *     summary: Get business appointments
- *     tags: [Business Management]
- *     description: Retrieve appointments for the business
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 20
- *         description: Items per page
- *       - in: query
- *         name: date
- *         schema:
- *           type: string
- *           format: date
- *         description: Filter by specific date (YYYY-MM-DD)
- *       - in: query
- *         name: service_name
- *         schema:
- *           type: string
- *         description: Filter by service name
- *     responses:
- *       200:
- *         description: Appointments retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Appointments retrieved successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     appointments:
- *                       type: array
- *                       items:
- *                         type: object
- *                         description: Appointment data
- *                     pagination:
- *                       type: object
- */
-router.get('/appointments',
-  generalLimiter,
-  authenticateBusiness,
-  businessController.getAppointments
-);
-
-/**
- * @swagger
- * /api/business/appointments:
  *   post:
  *     summary: Add appointment
  *     tags: [Business Management]
@@ -1395,73 +1821,6 @@ router.delete('/products/:id',
 
 /**
  * @swagger
- * /api/business/analytics:
- *   get:
- *     summary: Get business analytics
- *     tags: [Business Management]
- *     description: Retrieve detailed business analytics and reports
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: startDate
- *         schema:
- *           type: string
- *           format: date
- *         description: Start date for analytics (YYYY-MM-DD)
- *         example: "2024-01-01"
- *       - in: query
- *         name: endDate
- *         schema:
- *           type: string
- *           format: date
- *         description: End date for analytics (YYYY-MM-DD)
- *         example: "2024-01-31"
- *       - in: query
- *         name: reportType
- *         schema:
- *           type: string
- *           enum: [summary, orders, revenue, customers, products]
- *           default: summary
- *         description: Type of analytics report
- *     responses:
- *       200:
- *         description: Analytics retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Analytics retrieved successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     period:
- *                       type: object
- *                       properties:
- *                         start:
- *                           type: string
- *                         end:
- *                           type: string
- *                         report_type:
- *                           type: string
- *                     analytics:
- *                       type: object
- *                       description: Analytics data based on report type
- */
-router.get('/analytics',
-  generalLimiter,
-  authenticateBusiness,
-  businessController.getAnalytics
-);
-
-/**
- * @swagger
  * /api/business/financials:
  *   get:
  *     summary: Get financial records
@@ -1540,199 +1899,6 @@ router.get('/analytics',
 
 /**
  * @swagger
- * /api/business/operations-log:
- *   get:
- *     summary: Get operations history
- *     tags: [Business Management]
- *     description: Retrieve business operations and activity log
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 50
- *         description: Items per page
- *       - in: query
- *         name: startDate
- *         schema:
- *           type: string
- *           format: date
- *         description: Start date filter (YYYY-MM-DD)
- *       - in: query
- *         name: endDate
- *         schema:
- *           type: string
- *           format: date
- *         description: End date filter (YYYY-MM-DD)
- *       - in: query
- *         name: operation_type
- *         schema:
- *           type: string
- *           enum: [order, reservation, product]
- *         description: Filter by operation type
- *     responses:
- *       200:
- *         description: Operations log retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Operations log retrieved successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     operations:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           id:
- *                             type: string
- *                           type:
- *                             type: string
- *                           operation:
- *                             type: string
- *                           timestamp:
- *                             type: string
- *                           reference_id:
- *                             type: string
- *                     pagination:
- *                       type: object
- */
-router.get('/operations-log',
-  generalLimiter,
-  authenticateBusiness,
-  businessController.getOperationsLog
-);
-
-/**
- * @swagger
- * /api/business/dashboard:
- *   get:
- *     summary: Get business dashboard
- *     tags: [Business Management]
- *     description: Retrieve business analytics and performance metrics
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: startDate
- *         schema:
- *           type: string
- *           format: date
- *         description: Start date for analytics (YYYY-MM-DD)
- *         example: "2024-01-01"
- *       - in: query
- *         name: endDate
- *         schema:
- *           type: string
- *           format: date
- *         description: End date for analytics (YYYY-MM-DD)
- *         example: "2024-01-31"
- *     responses:
- *       200:
- *         description: Dashboard data retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Dashboard data retrieved successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     period:
- *                       type: object
- *                       properties:
- *                         start:
- *                           type: string
- *                           format: date-time
- *                         end:
- *                           type: string
- *                           format: date-time
- *                     metrics:
- *                       type: object
- *                       properties:
- *                         orders:
- *                           type: object
- *                           properties:
- *                             total:
- *                               type: integer
- *                             completed:
- *                               type: integer
- *                             cancelled:
- *                               type: integer
- *                             completion_rate:
- *                               type: number
- *                             total_revenue:
- *                               type: integer
- *                         reservations:
- *                           type: object
- *                           properties:
- *                             total:
- *                               type: integer
- *                             completed:
- *                               type: integer
- *                             cancelled:
- *                               type: integer
- *                             completion_rate:
- *                               type: number
- *                         ratings:
- *                           type: object
- *                           properties:
- *                             average:
- *                               type: number
- *                             count:
- *                               type: integer
- *                         revenue:
- *                           type: object
- *                           properties:
- *                             total:
- *                               type: integer
- *                             average:
- *                               type: number
- *                     summary:
- *                       type: object
- *                       properties:
- *                         total_orders:
- *                           type: integer
- *                         total_reservations:
- *                           type: integer
- *                         average_rating:
- *                           type: number
- *                         total_revenue:
- *                           type: integer
- */
-router.get('/dashboard',
-  generalLimiter,
-  authenticateBusiness,
-  businessController.getDashboard
-);
-
-/**
- * @swagger
  * /api/business/categories:
  *   post:
  *     summary: Create category
@@ -1742,12 +1908,6 @@ router.post('/categories',
   generalLimiter,
   authenticateBusiness,
   businessController.createCategory
-);
-
-router.get('/categories',
-  generalLimiter,
-  authenticateBusiness,
-  businessController.getCategories
 );
 
 router.put('/categories/:id',
@@ -1790,242 +1950,6 @@ router.delete('/offers/:id',
   authenticateBusiness,
   validateUUID,
   businessController.deleteOffer
-);
-
-/**
- * @swagger
- * /api/business/products:
- *   get:
- *     summary: Get business products
- *     tags: [Business Management]
- *     description: Retrieve business menu items and products
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 20
- *         description: Items per page
- *       - in: query
- *         name: category
- *         schema:
- *           type: string
- *         description: Filter by product category
- *       - in: query
- *         name: available
- *         schema:
- *           type: string
- *           enum: [true, false]
- *         description: Filter by availability
- *     responses:
- *       200:
- *         description: Products retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Products retrieved successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     products:
- *                       type: array
- *                       items:
- *                         type: object
- *                         description: Product data
- *                     pagination:
- *                       type: object
- *                       properties:
- *                         page:
- *                           type: integer
- *                         limit:
- *                           type: integer
- *                         total:
- *                           type: integer
- *                         totalPages:
- *                           type: integer
- */
-router.get('/products',
-  generalLimiter,
-  authenticateBusiness,
-  businessController.getProducts
-);
-
-/**
- * @swagger
- * /api/business/orders:
- *   get:
- *     summary: Get business orders
- *     tags: [Business Management]
- *     description: Retrieve orders for the business
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 20
- *         description: Items per page
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [pending, accepted, preparing, ready, completed, cancelled]
- *         description: Filter by order status
- *       - in: query
- *         name: startDate
- *         schema:
- *           type: string
- *           format: date
- *         description: Start date filter (YYYY-MM-DD)
- *       - in: query
- *         name: endDate
- *         schema:
- *           type: string
- *           format: date
- *         description: End date filter (YYYY-MM-DD)
- *     responses:
- *       200:
- *         description: Orders retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Orders retrieved successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     orders:
- *                       type: array
- *                       items:
- *                         type: object
- *                         description: Order data with user information
- *                     pagination:
- *                       type: object
- *                       properties:
- *                         page:
- *                           type: integer
- *                         limit:
- *                           type: integer
- *                         total:
- *                           type: integer
- *                         totalPages:
- *                           type: integer
- */
-router.get('/orders',
-  generalLimiter,
-  authenticateBusiness,
-  businessController.getOrders
-);
-
-/**
- * @swagger
- * /api/business/reservations:
- *   get:
- *     summary: Get business reservations
- *     tags: [Business Management]
- *     description: Retrieve reservations for the business
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *           minimum: 1
- *           default: 1
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *           minimum: 1
- *           maximum: 100
- *           default: 20
- *         description: Items per page
- *       - in: query
- *         name: status
- *         schema:
- *           type: string
- *           enum: [pending, confirmed, cancelled, completed, expired]
- *         description: Filter by reservation status
- *       - in: query
- *         name: date
- *         schema:
- *           type: string
- *           format: date
- *         description: Filter by specific date (YYYY-MM-DD)
- *     responses:
- *       200:
- *         description: Reservations retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 success:
- *                   type: boolean
- *                   example: true
- *                 message:
- *                   type: string
- *                   example: "Reservations retrieved successfully"
- *                 data:
- *                   type: object
- *                   properties:
- *                     reservations:
- *                       type: array
- *                       items:
- *                         type: object
- *                         description: Reservation data with user information
- *                     pagination:
- *                       type: object
- *                       properties:
- *                         page:
- *                           type: integer
- *                         limit:
- *                           type: integer
- *                         total:
- *                           type: integer
- *                         totalPages:
- *                           type: integer
- */
-router.get('/reservations',
-  generalLimiter,
-  authenticateBusiness,
-  businessController.getReservations
 );
 
 module.exports = router;
