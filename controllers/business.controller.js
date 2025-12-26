@@ -2828,4 +2828,15 @@ CSY Pro Team`
   }
 }
 
-module.exports = new BusinessController();
+// Create instance and bind methods to preserve 'this' context
+const businessController = new BusinessController();
+
+// Bind all methods to preserve 'this' context when used as route handlers
+const boundController = {};
+for (const key of Object.getOwnPropertyNames(Object.getPrototypeOf(businessController))) {
+  if (key !== 'constructor' && typeof businessController[key] === 'function') {
+    boundController[key] = businessController[key].bind(businessController);
+  }
+}
+
+module.exports = boundController;
