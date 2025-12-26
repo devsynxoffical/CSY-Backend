@@ -18,52 +18,50 @@ class MapsService {
       west: 24.7
     };
 
-    // Major cities with coordinates by country
+    // Major cities with coordinates by country (main cities only, no areas)
     this.majorCities = {
-      // Egypt
+      // Egypt - Main Cities
       cairo: { lat: 30.0444, lng: 31.2357, country: 'Egypt' },
       alexandria: { lat: 31.2001, lng: 29.9187, country: 'Egypt' },
-      damietta: { lat: 31.4165, lng: 31.8133, country: 'Egypt' },
-      mansoura: { lat: 31.0364, lng: 31.3807, country: 'Egypt' },
-      tanta: { lat: 30.7885, lng: 31.0019, country: 'Egypt' },
-      zagazig: { lat: 30.5833, lng: 31.5000, country: 'Egypt' },
-      shibin: { lat: 30.5542, lng: 31.0090, country: 'Egypt' },
-      benha: { lat: 30.4667, lng: 31.1833, country: 'Egypt' },
+      giza: { lat: 30.0131, lng: 31.2089, country: 'Egypt' },
+      shubraelkheima: { lat: 30.1286, lng: 31.2422, country: 'Egypt' },
       portsaid: { lat: 31.2653, lng: 32.3019, country: 'Egypt' },
       suez: { lat: 29.9667, lng: 32.5333, country: 'Egypt' },
-      ismailia: { lat: 30.6043, lng: 32.2722, country: 'Egypt' },
-      fayoum: { lat: 29.3084, lng: 30.8428, country: 'Egypt' },
-      minya: { lat: 28.1099, lng: 30.7503, country: 'Egypt' },
-      asyut: { lat: 27.1801, lng: 31.1837, country: 'Egypt' },
-      sohag: { lat: 26.5569, lng: 31.6948, country: 'Egypt' },
-      qena: { lat: 26.1642, lng: 32.7267, country: 'Egypt' },
       luxor: { lat: 25.6872, lng: 32.6396, country: 'Egypt' },
       aswan: { lat: 24.0889, lng: 32.8998, country: 'Egypt' },
+      mansoura: { lat: 31.0364, lng: 31.3807, country: 'Egypt' },
+      tanta: { lat: 30.7885, lng: 31.0019, country: 'Egypt' },
+      ismailia: { lat: 30.6043, lng: 32.2722, country: 'Egypt' },
+      fayoum: { lat: 29.3084, lng: 30.8428, country: 'Egypt' },
+      zagazig: { lat: 30.5833, lng: 31.5000, country: 'Egypt' },
+      damietta: { lat: 31.4165, lng: 31.8133, country: 'Egypt' },
+      asyut: { lat: 27.1801, lng: 31.1837, country: 'Egypt' },
+      minya: { lat: 28.1099, lng: 30.7503, country: 'Egypt' },
+      sohag: { lat: 26.5569, lng: 31.6948, country: 'Egypt' },
+      qena: { lat: 26.1642, lng: 32.7267, country: 'Egypt' },
       
-      // UAE / Dubai
-      dubai: { lat: 25.2048, lng: 55.2708, country: 'UAE', emirate: 'Dubai' },
-      abudhabi: { lat: 24.4539, lng: 54.3773, country: 'UAE', emirate: 'Abu Dhabi' },
-      sharjah: { lat: 25.3573, lng: 55.4033, country: 'UAE', emirate: 'Sharjah' },
-      ajman: { lat: 25.4052, lng: 55.5136, country: 'UAE', emirate: 'Ajman' },
-      ummalquwain: { lat: 25.5650, lng: 55.5552, country: 'UAE', emirate: 'Umm Al Quwain' },
-      rasalkhaimah: { lat: 25.7889, lng: 55.9590, country: 'UAE', emirate: 'Ras Al Khaimah' },
-      fujairah: { lat: 25.1288, lng: 56.3264, country: 'UAE', emirate: 'Fujairah' },
+      // Syria - Main Cities
+      damascus: { lat: 33.5138, lng: 36.2765, country: 'Syria' },
+      aleppo: { lat: 36.2021, lng: 37.1343, country: 'Syria' },
+      homs: { lat: 34.7268, lng: 36.7234, country: 'Syria' },
+      latakia: { lat: 35.5138, lng: 35.7906, country: 'Syria' },
+      hama: { lat: 35.1318, lng: 36.7578, country: 'Syria' },
+      tartus: { lat: 34.8886, lng: 35.8864, country: 'Syria' },
+      raqqa: { lat: 35.9506, lng: 39.0094, country: 'Syria' },
+      deirezzor: { lat: 35.3333, lng: 40.1500, country: 'Syria' },
+      hasakah: { lat: 36.4833, lng: 40.7500, country: 'Syria' },
+      idlib: { lat: 35.9333, lng: 36.6333, country: 'Syria' },
+      daraa: { lat: 32.6189, lng: 36.1020, country: 'Syria' },
+      suwayda: { lat: 32.7089, lng: 36.5694, country: 'Syria' },
       
-      // Dubai Areas
-      'dubai marina': { lat: 25.0772, lng: 55.1398, country: 'UAE', emirate: 'Dubai' },
-      'downtown dubai': { lat: 25.1972, lng: 55.2744, country: 'UAE', emirate: 'Dubai' },
-      'business bay': { lat: 25.1867, lng: 55.2644, country: 'UAE', emirate: 'Dubai' },
-      'jumeirah': { lat: 25.2000, lng: 55.2400, country: 'UAE', emirate: 'Dubai' },
-      'deira': { lat: 25.2667, lng: 55.3000, country: 'UAE', emirate: 'Dubai' },
-      'bur dubai': { lat: 25.2500, lng: 55.3000, country: 'UAE', emirate: 'Dubai' },
-      'dubai internet city': { lat: 25.0900, lng: 55.1600, country: 'UAE', emirate: 'Dubai' },
-      'dubai media city': { lat: 25.0900, lng: 55.1600, country: 'UAE', emirate: 'Dubai' },
-      'dubai knowledge park': { lat: 25.0900, lng: 55.1600, country: 'UAE', emirate: 'Dubai' },
-      'palm jumeirah': { lat: 25.1124, lng: 55.1390, country: 'UAE', emirate: 'Dubai' },
-      'dubai sports city': { lat: 25.0400, lng: 55.2000, country: 'UAE', emirate: 'Dubai' },
-      'international city': { lat: 25.1500, lng: 55.3500, country: 'UAE', emirate: 'Dubai' },
-      'motor city': { lat: 25.0500, lng: 55.2000, country: 'UAE', emirate: 'Dubai' },
-      'dubai production city': { lat: 25.0900, lng: 55.1600, country: 'UAE', emirate: 'Dubai' }
+      // UAE - Main Cities (Emirates)
+      dubai: { lat: 25.2048, lng: 55.2708, country: 'UAE' },
+      abudhabi: { lat: 24.4539, lng: 54.3773, country: 'UAE' },
+      sharjah: { lat: 25.3573, lng: 55.4033, country: 'UAE' },
+      ajman: { lat: 25.4052, lng: 55.5136, country: 'UAE' },
+      rasalkhaimah: { lat: 25.7889, lng: 55.9590, country: 'UAE' },
+      fujairah: { lat: 25.1288, lng: 56.3264, country: 'UAE' },
+      ummalquwain: { lat: 25.5650, lng: 55.5552, country: 'UAE' }
     };
   }
 

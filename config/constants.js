@@ -7,11 +7,20 @@ const COUNTRIES = {
   AE: { name: 'United Arab Emirates', code: 'AE', currency: 'AED' }
 };
 
-// Cities by Country (for quick lookup)
+// Cities by Country (main cities only)
 const CITIES_BY_COUNTRY = {
-  EG: ['Cairo', 'Alexandria', 'Damietta', 'Mansoura', 'Tanta', 'Zagazig', 'Port Said', 'Suez', 'Ismailia'],
-  SY: ['Damascus', 'Aleppo', 'Homs', 'Latakia', 'Tartus', 'Hama'],
-  AE: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah', 'Fujairah', 'Umm Al Quwain']
+  EG: [
+    'Cairo', 'Alexandria', 'Giza', 'Shubra El Kheima', 'Port Said', 'Suez',
+    'Luxor', 'Aswan', 'Mansoura', 'Tanta', 'Ismailia', 'Fayoum', 'Zagazig',
+    'Damietta', 'Asyut', 'Minya', 'Sohag', 'Qena'
+  ],
+  SY: [
+    'Damascus', 'Aleppo', 'Homs', 'Latakia', 'Hama', 'Tartus', 'Raqqa',
+    'Deir ez-Zor', 'Al-Hasakah', 'Idlib', 'Daraa', 'As-Suwayda'
+  ],
+  AE: [
+    'Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah', 'Fujairah', 'Umm Al Quwain'
+  ]
 };
 
 // Governorate/Region Codes by Country
