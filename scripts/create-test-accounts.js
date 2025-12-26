@@ -80,7 +80,6 @@ async function createTestAccounts() {
                 business_id: business.id,
                 full_name: 'Test Cashier',
                 email: 'cashier@example.com',
-                phone: '+201234567892',
                 password_hash: hashedPassword,
                 is_active: true
             }
