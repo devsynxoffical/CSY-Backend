@@ -13,6 +13,7 @@
     "db:seed": "node scripts/seed.js",
     "db:seed:dashboard": "node scripts/seed-dashboard-data.js",
     "db:seed:alexandria": "node scripts/seed-alexandria-businesses.js",
+    "db:seed:drivers-cashiers": "node scripts/seed-drivers-cashiers.js",
     "db:create:test-accounts": "node scripts/create-test-accounts.js",
     "db:check:photos": "node scripts/check-business-photos.js",
     "db:backup": "node scripts/backup.js",
