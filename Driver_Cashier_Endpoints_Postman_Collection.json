@@ -1,0 +1,403 @@
+{
+	"info": {
+		"_postman_id": "driver-cashier-endpoints-2025",
+		"name": "Driver & Cashier Endpoints - Live Railway",
+		"description": "Postman collection for Driver and Cashier endpoints on live Railway production server",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Driver Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set(\"driverToken\", jsonData.data.token);",
+									"        pm.environment.set(\"driverId\", jsonData.data.driver.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"driver@example.com\",\n    \"password\": \"driverpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/driver/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"driver",
+								"login"
+							]
+						},
+						"description": "Login as driver to get authentication token"
+					},
+					"response": []
+				},
+				{
+					"name": "Cashier Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set(\"cashierToken\", jsonData.data.token);",
+									"        pm.environment.set(\"cashierId\", jsonData.data.cashier.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"cashier@example.com\",\n    \"password\": \"cashierpassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/cashier/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cashier",
+								"login"
+							]
+						},
+						"description": "Login as cashier to get authentication token"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication endpoints to get tokens"
+		},
+		{
+			"name": "Driver Endpoints",
+			"item": [
+				{
+					"name": "Get Driver Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{driverToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/driver/profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"driver",
+								"profile"
+							]
+						},
+						"description": "Get driver profile with active orders, completed today count, and ratings"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Incoming Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{driverToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/driver/orders/incoming?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"driver",
+								"orders",
+								"incoming"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Items per page"
+								},
+								{
+									"key": "latitude",
+									"value": "",
+									"description": "Optional: Driver latitude for distance calculation",
+									"disabled": true
+								},
+								{
+									"key": "longitude",
+									"value": "",
+									"description": "Optional: Driver longitude for distance calculation",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get available/incoming orders for driver (orders with status 'waiting_driver' without assigned driver)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Driver Earnings",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{driverToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/driver/earnings?startDate=2025-12-01&endDate=2025-12-31",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"driver",
+								"earnings"
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2025-12-01",
+									"description": "Start date (YYYY-MM-DD). Defaults to start of current month if not provided"
+								},
+								{
+									"key": "endDate",
+									"value": "2025-12-31",
+									"description": "End date (YYYY-MM-DD). Defaults to end of current month if not provided"
+								}
+							]
+						},
+						"description": "Get driver earnings and statistics for a date range. Uses actual_delivery_time field to filter completed orders."
+					},
+					"response": []
+				},
+				{
+					"name": "Deliver Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.id) {",
+									"        pm.environment.set(\"orderId\", jsonData.data.id);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{driverToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"delivery_notes\": \"Delivered successfully to customer\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/driver/orders/:orderId/deliver",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"driver",
+								"orders",
+								":orderId",
+								"deliver"
+							],
+							"variable": [
+								{
+									"key": "orderId",
+									"value": "",
+									"description": "Order ID to deliver (UUID format)"
+								}
+							]
+						},
+						"description": "Mark order as delivered. Sets actual_delivery_time field and updates order status to 'completed'. Order must be in 'in_delivery' status."
+					},
+					"response": []
+				}
+			],
+			"description": "Driver management and delivery endpoints"
+		},
+		{
+			"name": "Cashier Endpoints",
+			"item": [
+				{
+					"name": "Get Cashier Orders",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{cashierToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/cashier/orders?page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"cashier",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Items per page"
+								},
+								{
+									"key": "status",
+									"value": "",
+									"description": "Filter by order status (pending, accepted, preparing, waiting_driver, in_delivery, completed, cancelled)",
+									"disabled": true
+								},
+								{
+									"key": "startDate",
+									"value": "",
+									"description": "Start date filter (YYYY-MM-DD)",
+									"disabled": true
+								},
+								{
+									"key": "endDate",
+									"value": "",
+									"description": "End date filter (YYYY-MM-DD)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all orders for the cashier's business. Filters orders through OrderItem business_id."
+					},
+					"response": []
+				}
+			],
+			"description": "Cashier operations endpoints"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://csy-backend-production.up.railway.app",
+			"type": "string"
+		},
+		{
+			"key": "driverToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "cashierToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "driverId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "cashierId",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+
