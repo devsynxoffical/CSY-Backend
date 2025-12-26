@@ -1,4 +1,4 @@
-const { Notification } = require('../models');
+const { prisma } = require('../config/database');
 const { snsHelpers } = require('../config');
 const { logger } = require('../utils');
 const emailService = require('./email.service');
@@ -108,20 +108,31 @@ class NotificationService {
         throw new Error(`Notification template '${notificationType}' not found`);
       }
 
-      // Prepare notification data
+      // Format template with data
+      const { title, message } = this.formatTemplate(template, templateData);
+
+      // Prepare notification data for Prisma
       const notificationData = {
-        recipient_type: recipientType,
-        recipient_id: recipientId,
-        notification_type: notificationType,
-        priority: options.priority || template.priority,
-        ...this.formatTemplate(template, templateData)
+        type: notificationType,
+        title,
+        message,
+        data: templateData || {},
+        is_read: false
       };
 
-      // Set sent_via based on options
-      notificationData.sent_via = this.determineSendChannels(options);
+      // Set recipient based on type
+      if (recipientType === 'user') {
+        notificationData.user_id = recipientId;
+      } else if (recipientType === 'business') {
+        notificationData.business_id = recipientId;
+      } else if (recipientType === 'driver') {
+        notificationData.driver_id = recipientId;
+      }
 
-      // Create notification in database
-      const notification = await Notification.create(notificationData);
+      // Create notification in database using Prisma
+      const notification = await prisma.notification.create({
+        data: notificationData
+      });
 
       // Send via specified channels
       await this.sendViaChannels(notification, options);
@@ -274,14 +285,62 @@ class NotificationService {
   }
 
   /**
+   * Simple sendNotification method for backward compatibility
+   * Creates a notification in the database
+   */
+  async sendNotification(email, title, message, data = {}) {
+    try {
+      // Find user or business by email
+      let user = await prisma.user.findUnique({ where: { email } });
+      let business = await prisma.business.findUnique({ where: { owner_email: email } });
+      
+      let notificationData = {
+        type: data.type || 'system',
+        title,
+        message,
+        data: data || {},
+        is_read: false
+      };
+
+      if (user) {
+        notificationData.user_id = user.id;
+      } else if (business) {
+        notificationData.business_id = business.id;
+      } else {
+        // If neither found, log warning but still create notification
+        logger.warn('No user or business found for notification email', { email });
+        // Create notification without user_id or business_id
+      }
+
+      const notification = await prisma.notification.create({
+        data: notificationData
+      });
+
+      logger.info('Notification sent', {
+        notificationId: notification.id,
+        email,
+        type: notificationData.type
+      });
+
+      return notification;
+    } catch (error) {
+      logger.error('Send notification failed', {
+        email,
+        error: error.message
+      });
+      throw error;
+    }
+  }
+
+  /**
    * Mark notification as read
    */
   async markAsRead(notificationId, userId) {
     try {
-      const notification = await Notification.findOne({
+      const notification = await prisma.notification.findFirst({
         where: {
           id: notificationId,
-          recipient_id: userId
+          user_id: userId
         }
       });
 
@@ -289,9 +348,11 @@ class NotificationService {
         throw new Error('Notification not found');
       }
 
-      await notification.update({
-        is_read: true,
-        read_at: new Date()
+      await prisma.notification.update({
+        where: { id: notificationId },
+        data: {
+          is_read: true
+        }
       });
 
       logger.info('Notification marked as read', { notificationId, userId });
@@ -323,20 +384,23 @@ class NotificationService {
         whereClause.is_read = false;
       }
 
-      const notifications = await Notification.findAndCountAll({
-        where: whereClause,
-        order: [['created_at', 'DESC']],
-        limit,
-        offset: (page - 1) * limit
-      });
+      const [notifications, total] = await Promise.all([
+        prisma.notification.findMany({
+          where: whereClause,
+          orderBy: { created_at: 'desc' },
+          take: limit,
+          skip: (page - 1) * limit
+        }),
+        prisma.notification.count({ where: whereClause })
+      ]);
 
       return {
-        notifications: notifications.rows,
+        notifications,
         pagination: {
           page,
           limit,
-          total: notifications.count,
-          totalPages: Math.ceil(notifications.count / limit)
+          total,
+          totalPages: Math.ceil(total / limit)
         }
       };
     } catch (error) {
@@ -501,9 +565,9 @@ class NotificationService {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
-      const deletedCount = await Notification.destroy({
+      const deletedCount = await prisma.notification.deleteMany({
         where: {
-          created_at: { [Op.lt]: cutoffDate },
+          created_at: { lt: cutoffDate },
           is_read: true
         }
       });
@@ -525,24 +589,31 @@ class NotificationService {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - days);
 
-      const stats = await Notification.findAll({
+      const notifications = await prisma.notification.findMany({
         where: {
-          recipient_id: userId,
-          created_at: { [Op.gte]: cutoffDate }
-        },
-        attributes: [
-          'notification_type',
-          [sequelize.fn('COUNT', sequelize.col('id')), 'count'],
-          [sequelize.fn('SUM', sequelize.literal('CASE WHEN is_read THEN 1 ELSE 0 END')), 'read_count']
-        ],
-        group: ['notification_type']
+          user_id: userId,
+          created_at: { gte: cutoffDate }
+        }
       });
 
-      return stats.map(stat => ({
-        type: stat.notification_type,
-        total: parseInt(stat.dataValues.count),
-        read: parseInt(stat.dataValues.read_count || 0),
-        unread: parseInt(stat.dataValues.count) - parseInt(stat.dataValues.read_count || 0)
+      // Group by type and calculate stats
+      const statsMap = {};
+      notifications.forEach(notif => {
+        const type = notif.type;
+        if (!statsMap[type]) {
+          statsMap[type] = { total: 0, read: 0 };
+        }
+        statsMap[type].total++;
+        if (notif.is_read) {
+          statsMap[type].read++;
+        }
+      });
+
+      return Object.keys(statsMap).map(type => ({
+        type,
+        total: statsMap[type].total,
+        read: statsMap[type].read,
+        unread: statsMap[type].total - statsMap[type].read
       }));
     } catch (error) {
       logger.error('Get notification stats failed', { userId, error: error.message });

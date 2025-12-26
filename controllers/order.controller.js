@@ -284,7 +284,7 @@ class OrderController {
       }
 
       // Return order details
-      const orderDetails = await this.getOrderDetails(order.id);
+      const orderDetails = await this._getOrderDetailsHelper(order.id);
 
       res.status(201).json({
         success: true,
@@ -310,7 +310,7 @@ class OrderController {
       const { id } = req.params;
       const userId = req.user.id;
 
-      const orderDetails = await this.getOrderDetails(id);
+      const orderDetails = await this._getOrderDetailsHelper(id);
 
       if (!orderDetails) {
         return res.status(404).json({
@@ -406,7 +406,7 @@ class OrderController {
         { ...updateFields, updated_at: new Date() }
       );
 
-      const updatedOrder = await this.getOrderDetails(id);
+      const updatedOrder = await this._getOrderDetailsHelper(id);
 
       res.json({
         success: true,
@@ -554,7 +554,7 @@ class OrderController {
       // Get order details for each order
       const ordersWithDetails = [];
       for (const order of orders) {
-        const details = await this.getOrderDetails(order.id);
+        const details = await this._getOrderDetailsHelper(order.id);
         ordersWithDetails.push(details);
       }
 
@@ -771,10 +771,7 @@ class OrderController {
   /**
    * Helper method to get complete order details
    */
-  /**
-   * Helper method to get complete order details
-   */
-  async getOrderDetails(orderId) {
+  async _getOrderDetailsHelper(orderId) {
     try {
       const order = await prisma.order.findUnique({ where: { id: orderId } });
       if (!order) return null;
