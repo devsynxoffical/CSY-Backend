@@ -884,4 +884,14 @@ class OrderController {
   }
 }
 
-module.exports = new OrderController();
+const orderController = new OrderController();
+
+// Bind all methods to preserve 'this' context when used as Express route handlers
+const boundController = {};
+for (const key of Object.getOwnPropertyNames(Object.getPrototypeOf(orderController))) {
+  if (key !== 'constructor' && typeof orderController[key] === 'function') {
+    boundController[key] = orderController[key].bind(orderController);
+  }
+}
+
+module.exports = boundController;
