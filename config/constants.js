@@ -102,6 +102,72 @@ const APP_TYPES = [
   'care_go'
 ];
 
+// App Type to Business Type Mapping
+// Defines which business types belong to which app types
+const APP_TYPE_BUSINESS_MAPPING = {
+  // PASS APP - Food & Dining businesses
+  pass: [
+    'restaurant',
+    'cafe',
+    'juice_shop',
+    'dessert_shop',
+    'fast_food',
+    'supermarket'
+  ],
+  
+  // CARE APP - Healthcare & Beauty businesses
+  care: [
+    'pharmacy',
+    'clinic',
+    'beauty_center'
+  ],
+  
+  // GO APP - Delivery & Transportation (uses businesses from pass and care)
+  go: [
+    'restaurant',
+    'cafe',
+    'pharmacy',
+    'clinic',
+    'beauty_center',
+    'juice_shop',
+    'dessert_shop',
+    'fast_food',
+    'supermarket'
+  ],
+  
+  // PASS_GO - Combined Pass + Go (all pass businesses with delivery)
+  pass_go: [
+    'restaurant',
+    'cafe',
+    'juice_shop',
+    'dessert_shop',
+    'fast_food',
+    'supermarket'
+  ],
+  
+  // CARE_GO - Combined Care + Go (all care businesses with delivery)
+  care_go: [
+    'pharmacy',
+    'clinic',
+    'beauty_center'
+  ]
+};
+
+// Business Type to App Type Mapping (reverse lookup)
+const BUSINESS_TYPE_APP_MAPPING = {
+  restaurant: ['pass', 'go', 'pass_go'],
+  cafe: ['pass', 'go', 'pass_go'],
+  juice_shop: ['pass', 'go', 'pass_go'],
+  dessert_shop: ['pass', 'go', 'pass_go'],
+  fast_food: ['pass', 'go', 'pass_go'],
+  supermarket: ['pass', 'go', 'pass_go'],
+  pharmacy: ['care', 'go', 'care_go'],
+  clinic: ['care', 'go', 'care_go'],
+  beauty_center: ['care', 'go', 'care_go'],
+  recreational: ['pass', 'go', 'pass_go'], // Can be in pass or go
+  other: ['pass', 'care', 'go', 'pass_go', 'care_go'] // Can be in any app
+};
+
 // Order Types
 const ORDER_TYPES = [
   'delivery',
