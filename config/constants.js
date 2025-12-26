@@ -1,22 +1,72 @@
 // Application Constants
 
-// Governorate Codes
+// Countries supported
+const COUNTRIES = {
+  EG: { name: 'Egypt', code: 'EG', currency: 'EGP' },
+  SY: { name: 'Syria', code: 'SY', currency: 'SYP' },
+  AE: { name: 'United Arab Emirates', code: 'AE', currency: 'AED' }
+};
+
+// Cities by Country (for quick lookup)
+const CITIES_BY_COUNTRY = {
+  EG: ['Cairo', 'Alexandria', 'Damietta', 'Mansoura', 'Tanta', 'Zagazig', 'Port Said', 'Suez', 'Ismailia'],
+  SY: ['Damascus', 'Aleppo', 'Homs', 'Latakia', 'Tartus', 'Hama'],
+  AE: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah', 'Fujairah', 'Umm Al Quwain']
+};
+
+// Governorate/Region Codes by Country
 const GOVERNORATE_CODES = {
+  // Egypt
   DM: 'Damietta',
-  HS: 'Al-Hasakah', // Adding more common Syrian governorates
+  CA: 'Cairo',
+  AL: 'Alexandria',
+  GZ: 'Giza',
+  SH: 'Sharqia',
+  DA: 'Dakahlia',
+  BE: 'Beheira',
+  MN: 'Monufia',
+  QL: 'Qalyubia',
+  GH: 'Gharbia',
+  KF: 'Kafr El Sheikh',
+  IS: 'Ismailia',
+  SU: 'Suez',
+  PS: 'Port Said',
+  NS: 'North Sinai',
+  SS: 'South Sinai',
+  BN: 'Beni Suef',
+  FY: 'Faiyum',
+  MY: 'Minya',
+  AS: 'Asyut',
+  SO: 'Sohag',
+  QN: 'Qena',
+  LX: 'Luxor',
+  AW: 'Aswan',
+  NV: 'New Valley',
+  RD: 'Red Sea',
+  MT: 'Matruh',
+  
+  // Syria
+  HS: 'Al-Hasakah',
   HM: 'Homs',
   HI: 'Hama',
   LA: 'Latakia',
   QA: 'Qamishli',
   RA: 'Raqqa',
-  SU: 'Suwayda',
   TA: 'Tartus',
-  AL: 'Aleppo',
-  DA: 'Damascus',
+  DA_SY: 'Damascus',
   DR: 'Daraa',
   DE: 'Deir ez-Zor',
   ID: 'Idlib',
-  RI: 'Rif Dimashq'
+  RI: 'Rif Dimashq',
+  
+  // UAE / Dubai
+  DU: 'Dubai',
+  AD: 'Abu Dhabi',
+  SH_AE: 'Sharjah',
+  AJ: 'Ajman',
+  UQ: 'Umm Al Quwain',
+  RK: 'Ras Al Khaimah',
+  FU: 'Fujairah'
 };
 
 // Business Types (must match Prisma schema)
