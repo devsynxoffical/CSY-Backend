@@ -274,6 +274,31 @@ async function seedDriversAndCashiers() {
                 full_name: 'Rania Nabil',
                 email: 'rania.cashier@example.com',
                 business_index: Math.min(4, businesses.length - 1)
+            },
+            {
+                full_name: 'Nada Khaled',
+                email: 'nada.cashier@example.com',
+                business_index: Math.min(0, businesses.length - 1)
+            },
+            {
+                full_name: 'Salma Tarek',
+                email: 'salma.cashier@example.com',
+                business_index: Math.min(1, businesses.length - 1)
+            },
+            {
+                full_name: 'Reem Youssef',
+                email: 'reem.cashier@example.com',
+                business_index: Math.min(2, businesses.length - 1)
+            },
+            {
+                full_name: 'Hanan Amr',
+                email: 'hanan.cashier@example.com',
+                business_index: Math.min(3, businesses.length - 1)
+            },
+            {
+                full_name: 'Mona Waleed',
+                email: 'mona.cashier@example.com',
+                business_index: Math.min(4, businesses.length - 1)
             }
         ];
 
