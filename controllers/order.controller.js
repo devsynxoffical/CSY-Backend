@@ -249,9 +249,9 @@ class OrderController {
             business_id: item.business_id,
             product_id: item.product_id,
             quantity: item.quantity,
-            unit_price: item.price,
+            unit_price: item.unit_price,
             total_price: item.total_price,
-            preferences: item.add_ons || null,
+            preferences: item.preferences,
             is_available: item.is_available
           }
         });

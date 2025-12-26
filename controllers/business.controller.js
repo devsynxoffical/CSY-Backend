@@ -1839,16 +1839,14 @@ CSY Pro Team`
 
       // Create notification for user
       try {
-        const { prisma } = require('../models');
-        const CacheService = require('../services/cache.service');
-        await Notification.create({
-          recipient_type: 'user',
-          recipient_id: order.user_id,
-          title: 'Order Accepted',
-          message: `Your order #${order.order_number} has been accepted and is being prepared.`,
-          notification_type: 'order_status',
-          reference_id: order.id,
-          sent_via: ['push']
+        await prisma.notification.create({
+          data: {
+            user_id: order.user_id,
+            type: 'order',
+            title: 'Order Accepted',
+            message: `Your order #${order.order_number} has been accepted and is being prepared.`,
+            data: { order_id: order.id, order_number: order.order_number, status: 'accepted' }
+          }
         });
       } catch (notificationError) {
         logger.error('Failed to create order acceptance notification', {
@@ -1939,16 +1937,14 @@ CSY Pro Team`
 
       // Create notification for user
       try {
-        const { prisma } = require('../models');
-        const CacheService = require('../services/cache.service');
-        await Notification.create({
-          recipient_type: 'user',
-          recipient_id: order.user_id,
-          title: 'Order Cancelled',
-          message: `Your order #${order.order_number} has been cancelled. ${reason || 'Please contact the business for more details.'}`,
-          notification_type: 'order_status',
-          reference_id: order.id,
-          sent_via: ['push']
+        await prisma.notification.create({
+          data: {
+            user_id: order.user_id,
+            type: 'order',
+            title: 'Order Cancelled',
+            message: `Your order #${order.order_number} has been cancelled. ${reason || 'Please contact the business for more details.'}`,
+            data: { order_id: order.id, order_number: order.order_number, status: 'cancelled' }
+          }
         });
       } catch (notificationError) {
         logger.error('Failed to create order rejection notification', {
