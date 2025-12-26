@@ -823,8 +823,10 @@ class OrderController {
         include: {
           product: {
             select: {
+              id: true,
               name: true,
-              image_url: true
+              image_url: true,
+              price: true
             }
           }
         },
