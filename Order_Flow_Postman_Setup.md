@@ -138,21 +138,38 @@ The collection uses these environment variables (auto-saved by test scripts):
 
 ## 🔑 Test Accounts
 
-Use these test accounts (from `TEST_ACCOUNTS_SETUP.md`):
+### ⚠️ IMPORTANT: Create Test Accounts First!
 
-### User Account
+Before using the collection, you **must** create test accounts by running:
+
+```bash
+npm run db:create:test-accounts
+```
+
+This will create:
+- **User**: `user@example.com` / `password123`
+- **Business**: `business@example.com` / `password123`
+- **Driver**: `driver@example.com` / `password123`
+- **Cashier**: `cashier@example.com` / `password123`
+- **Products**: 3 test products for the business
+
+### Test Account Credentials
+
+After running the script, use these credentials:
+
+#### User Account
 ```
 Email: user@example.com
 Password: password123
 ```
 
-### Business Account
+#### Business Account
 ```
 Email: business@example.com
 Password: password123
 ```
 
-**Note**: Update the email and password in the request bodies if using different accounts.
+**Note**: If you get "Invalid credentials" error, make sure you've run `npm run db:create:test-accounts` first!
 
 ## 🧪 Testing Tips
 

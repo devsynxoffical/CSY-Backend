@@ -5,7 +5,7 @@ const { prisma } = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 /**
- * Create test accounts for Driver and Cashier
+ * Create test accounts for User, Business, Driver and Cashier
  * Run this script to create test accounts if they don't exist
  */
 async function createTestAccounts() {
@@ -19,6 +19,36 @@ async function createTestAccounts() {
 
         const password = 'password123';
         const hashedPassword = await bcrypt.hash(password, 12);
+
+        // Create or update test user
+        console.log('👤 Creating test user...');
+        const user = await prisma.user.upsert({
+            where: { email: 'user@example.com' },
+            update: {
+                password_hash: hashedPassword,
+                is_active: true,
+                is_verified: true
+            },
+            create: {
+                full_name: 'Test User',
+                email: 'user@example.com',
+                phone: '+201234567890',
+                password_hash: hashedPassword,
+                pass_id: 'DM-100001',
+                governorate_code: 'DM',
+                is_active: true,
+                is_verified: true,
+                wallet: {
+                    create: {
+                        balance: 1000
+                    }
+                }
+            },
+            include: {
+                wallet: true
+            }
+        });
+        console.log('✅ User created/updated:', user.email);
 
         // Create or update test driver
         console.log('🛵 Creating test driver...');
@@ -86,9 +116,61 @@ async function createTestAccounts() {
         });
         console.log('✅ Cashier created/updated:', cashier.email);
 
+        // Create test products for the business (if they don't exist)
+        console.log('\n🍕 Creating test products...');
+        const productCount = await prisma.product.count({
+            where: { business_id: business.id }
+        });
+        
+        if (productCount === 0) {
+            await Promise.all([
+                prisma.product.create({
+                    data: {
+                        business_id: business.id,
+                        name: 'Cheese Burger',
+                        description: 'Delicious cheese burger',
+                        ingredients: 'Beef, Cheese, Bun',
+                        image_url: 'https://example.com/burger.jpg',
+                        price: 15000,
+                        category: 'Burgers',
+                        is_available: true
+                    }
+                }),
+                prisma.product.create({
+                    data: {
+                        business_id: business.id,
+                        name: 'Margherita Pizza',
+                        description: 'Classic pizza with tomato sauce and mozzarella',
+                        price: 20000,
+                        category: 'Pizza',
+                        is_available: true
+                    }
+                }),
+                prisma.product.create({
+                    data: {
+                        business_id: business.id,
+                        name: 'Caesar Salad',
+                        description: 'Fresh romaine lettuce with Caesar dressing',
+                        price: 12000,
+                        category: 'Salads',
+                        is_available: true
+                    }
+                })
+            ]);
+            console.log('✅ Created 3 test products');
+        } else {
+            console.log(`✅ Business already has ${productCount} products`);
+        }
+
         console.log('\n📝 Test Account Credentials:');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('Driver:');
+        console.log('User:');
+        console.log('  Email: user@example.com');
+        console.log('  Password: password123');
+        console.log('\nBusiness:');
+        console.log('  Email: business@example.com');
+        console.log('  Password: password123');
+        console.log('\nDriver:');
         console.log('  Email: driver@example.com');
         console.log('  Password: password123');
         console.log('\nCashier:');
