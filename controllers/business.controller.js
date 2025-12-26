@@ -2304,17 +2304,22 @@ CSY Pro Team`
   }
 
   async getOrdersMetrics(businessId, startDate, endDate) {
-    const where = {
-      business_id: businessId,
+    // Order doesn't have business_id, filter through OrderItem
+    const baseWhere = {
+      order_items: {
+        some: {
+          business_id: businessId
+        }
+      },
       created_at: { gte: startDate, lte: endDate }
     };
 
     const [total, completed, cancelled, revenue] = await Promise.all([
-      prisma.order.count({ where }),
-      prisma.order.count({ where: { ...where, status: 'completed' } }),
-      prisma.order.count({ where: { ...where, status: 'cancelled' } }),
+      prisma.order.count({ where: baseWhere }),
+      prisma.order.count({ where: { ...baseWhere, status: 'completed' } }),
+      prisma.order.count({ where: { ...baseWhere, status: 'cancelled' } }),
       prisma.order.aggregate({
-        where,
+        where: baseWhere,
         _sum: { final_amount: true }
       })
     ]);
@@ -2365,9 +2370,14 @@ CSY Pro Team`
   }
 
   async getRevenueMetrics(businessId, startDate, endDate) {
+    // Order doesn't have business_id, filter through OrderItem
     const stats = await prisma.order.aggregate({
       where: {
-        business_id: businessId,
+        order_items: {
+          some: {
+            business_id: businessId
+          }
+        },
         status: 'completed',
         created_at: { gte: startDate, lte: endDate }
       },
