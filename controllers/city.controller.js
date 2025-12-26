@@ -1,7 +1,7 @@
 const { prisma } = require('../models');
 const { mapsService } = require('../services');
 const { logger } = require('../utils');
-const { GOVERNORATE_CODES } = require('../config/constants');
+const { GOVERNORATE_CODES, COUNTRIES, CITIES_BY_COUNTRY } = require('../config/constants');
 
 /**
  * City Controller - Handles city-related operations
@@ -34,7 +34,7 @@ class CityController {
 
       // Filter by country if specified
       let filteredBusinesses = businesses;
-      if (country) {
+      if (country && CITIES_BY_COUNTRY) {
         const countryCities = CITIES_BY_COUNTRY[country.toUpperCase()] || [];
         filteredBusinesses = businesses.filter(b => 
           countryCities.some(c => b.city.toLowerCase().includes(c.toLowerCase()))
@@ -57,7 +57,7 @@ class CityController {
       });
 
       // Filter major cities by country if specified
-      if (country) {
+      if (country && COUNTRIES) {
         const countryCode = Object.keys(COUNTRIES).find(k => 
           COUNTRIES[k].code === country.toUpperCase() || 
           COUNTRIES[k].name.toLowerCase().includes(country.toLowerCase())
@@ -119,11 +119,11 @@ class CityController {
         data: {
           cities: uniqueCities,
           total: uniqueCities.length,
-          countries: Object.values(COUNTRIES).map(c => ({
+          countries: COUNTRIES ? Object.values(COUNTRIES).map(c => ({
             code: c.code,
             name: c.name,
             currency: c.currency
-          }))
+          })) : []
         }
       });
     } catch (error) {
