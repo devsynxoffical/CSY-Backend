@@ -22,57 +22,105 @@ async function createTestAccounts() {
 
         // Create or update test user
         console.log('👤 Creating test user...');
-        const user = await prisma.user.upsert({
-            where: { email: 'user@example.com' },
-            update: {
-                password_hash: hashedPassword,
-                is_active: true,
-                is_verified: true
+        let user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { email: 'user@example.com' },
+                    { phone: '+201234567890' }
+                ]
             },
-            create: {
-                full_name: 'Test User',
-                email: 'user@example.com',
-                phone: '+201234567890',
-                password_hash: hashedPassword,
-                pass_id: 'DM-100001',
-                governorate_code: 'DM',
-                is_active: true,
-                is_verified: true,
-                wallet: {
-                    create: {
-                        balance: 1000
-                    }
-                }
-            },
-            include: {
-                wallet: true
-            }
+            include: { wallet: true }
         });
-        console.log('✅ User created/updated:', user.email);
+
+        if (user) {
+            // Update existing user
+            user = await prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    email: 'user@example.com',
+                    phone: '+201234567890',
+                    password_hash: hashedPassword,
+                    is_active: true,
+                    is_verified: true,
+                    full_name: 'Test User',
+                    pass_id: 'DM-100001',
+                    governorate_code: 'DM'
+                },
+                include: { wallet: true }
+            });
+            console.log('✅ User updated:', user.email);
+        } else {
+            // Create new user
+            user = await prisma.user.create({
+                data: {
+                    full_name: 'Test User',
+                    email: 'user@example.com',
+                    phone: '+201234567890',
+                    password_hash: hashedPassword,
+                    pass_id: 'DM-100001',
+                    governorate_code: 'DM',
+                    is_active: true,
+                    is_verified: true,
+                    wallet: {
+                        create: {
+                            balance: 1000
+                        }
+                    }
+                },
+                include: {
+                    wallet: true
+                }
+            });
+            console.log('✅ User created:', user.email);
+        }
 
         // Create or update test driver
         console.log('🛵 Creating test driver...');
-        const driver = await prisma.driver.upsert({
-            where: { email: 'driver@example.com' },
-            update: {
-                password_hash: hashedPassword,
-                is_active: true,
-                is_available: true
-            },
-            create: {
-                full_name: 'Test Driver',
-                email: 'driver@example.com',
-                phone: '+201234567891',
-                password_hash: hashedPassword,
-                vehicle_type: 'motorcycle',
-                is_available: true,
-                is_active: true,
-                earnings_cash: 0,
-                earnings_online: 0,
-                platform_fees_owed: 0
+        let driver = await prisma.driver.findFirst({
+            where: {
+                OR: [
+                    { email: 'driver@example.com' },
+                    { phone: '+201234567891' }
+                ]
             }
         });
-        console.log('✅ Driver created/updated:', driver.email);
+
+        if (driver) {
+            // Update existing driver
+            driver = await prisma.driver.update({
+                where: { id: driver.id },
+                data: {
+                    email: 'driver@example.com',
+                    phone: '+201234567891',
+                    password_hash: hashedPassword,
+                    is_active: true,
+                    is_available: true,
+                    full_name: 'Test Driver',
+                    vehicle_type: 'motorcycle',
+                    earnings_cash: 0,
+                    earnings_online: 0,
+                    platform_fees_owed: 0
+                }
+            });
+            console.log('✅ Driver updated:', driver.email);
+        } else {
+            // Create new driver
+            driver = await prisma.driver.create({
+                data: {
+                    full_name: 'Test Driver',
+                    email: 'driver@example.com',
+                    phone: '+201234567891',
+                    password_hash: hashedPassword,
+                    vehicle_type: 'motorcycle',
+                    is_available: true,
+                    is_active: true,
+                    earnings_cash: 0,
+                    earnings_online: 0,
+                    platform_fees_owed: 0
+                }
+            });
+            console.log('✅ Driver created:', driver.email);
+        }
 
         // Get or create a test business first
         console.log('\n🏢 Creating test business...');
