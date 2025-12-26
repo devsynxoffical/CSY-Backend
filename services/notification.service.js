@@ -134,14 +134,15 @@ class NotificationService {
         data: notificationData
       });
 
-      // Send via specified channels
-      await this.sendViaChannels(notification, options);
+      // Send via specified channels (if email/phone provided)
+      if (options.email || options.phone) {
+        await this.sendViaChannels(notification, options);
+      }
 
       logger.info('Notification created and sent', {
         id: notification.id,
         type: notificationType,
-        recipient: `${recipientType}:${recipientId}`,
-        channels: notificationData.sent_via
+        recipient: `${recipientType}:${recipientId}`
       });
 
       return notification;
