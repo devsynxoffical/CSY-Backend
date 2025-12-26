@@ -74,13 +74,44 @@ class OrderController {
           });
         }
 
+        // Validate product_id format (UUID)
+        const trimmedProductId = product_id.trim();
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trimmedProductId)) {
+          return res.status(400).json({
+            success: false,
+            message: `Invalid product ID format: ${product_id}`,
+            error: 'INVALID_PRODUCT_ID_FORMAT'
+          });
+        }
+
         // Get product details
-        const product = await prisma.product.findUnique({ where: { id: product_id } });
+        const product = await prisma.product.findUnique({ 
+          where: { id: trimmedProductId },
+          include: {
+            business: {
+              select: { id: true, business_name: true, is_active: true }
+            }
+          }
+        });
+        
         if (!product) {
+          logger.warn('Product not found during order creation', { 
+            product_id: trimmedProductId,
+            userId: req.user.id
+          });
           return res.status(404).json({
             success: false,
             message: `Product not found: ${product_id}`,
             error: 'PRODUCT_NOT_FOUND'
+          });
+        }
+
+        // Check if business is active
+        if (!product.business || !product.business.is_active) {
+          return res.status(400).json({
+            success: false,
+            message: `Product's business is not active`,
+            error: 'BUSINESS_NOT_ACTIVE'
           });
         }
 
@@ -107,12 +138,12 @@ class OrderController {
         totalAmount += itemTotal;
 
         orderItems.push({
-          product_id,
+          product_id: trimmedProductId,
           business_id: product.business_id,
           quantity,
-          price: Number(product.price),
-          add_ons: add_ons || [],
+          unit_price: Number(product.price),
           total_price: itemTotal,
+          preferences: add_ons && add_ons.length > 0 ? { add_ons } : null,
           is_available: product.is_available
         });
       }

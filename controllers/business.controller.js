@@ -1797,11 +1797,26 @@ CSY Pro Team`
       const businessId = req.business.id;
       const orderId = req.params.id;
 
-      const order = await prisma.order.findUnique({
+      // Order doesn't have business_id, check through OrderItem
+      const order = await prisma.order.findFirst({
         where: {
           id: orderId,
-          business_id: businessId,
-          status: 'pending'
+          status: 'pending',
+          order_items: {
+            some: {
+              business_id: businessId
+            }
+          }
+        },
+        include: {
+          user: {
+            select: { id: true, full_name: true, phone: true }
+          },
+          order_items: {
+            where: {
+              business_id: businessId
+            }
+          }
         }
       });
 
@@ -1882,11 +1897,26 @@ CSY Pro Team`
       const orderId = req.params.id;
       const { reason } = req.body;
 
-      const order = await prisma.order.findUnique({
+      // Order doesn't have business_id, check through OrderItem
+      const order = await prisma.order.findFirst({
         where: {
           id: orderId,
-          business_id: businessId,
-          status: 'pending'
+          status: 'pending',
+          order_items: {
+            some: {
+              business_id: businessId
+            }
+          }
+        },
+        include: {
+          user: {
+            select: { id: true, full_name: true, phone: true }
+          },
+          order_items: {
+            where: {
+              business_id: businessId
+            }
+          }
         }
       });
 
