@@ -10,10 +10,11 @@ class CityController {
   /**
    * Get all cities
    * Returns unique cities from businesses and predefined major cities
+   * Supports multiple countries (Egypt, Syria, UAE/Dubai)
    */
   async getAllCities(req, res) {
     try {
-      const { governorate, search } = req.query;
+      const { governorate, search, country } = req.query;
 
       // Get unique cities from businesses
       const businesses = await prisma.business.findMany({
@@ -31,27 +32,72 @@ class CityController {
         distinct: ['city', 'governorate']
       });
 
+      // Filter by country if specified
+      let filteredBusinesses = businesses;
+      if (country) {
+        const countryCities = CITIES_BY_COUNTRY[country.toUpperCase()] || [];
+        filteredBusinesses = businesses.filter(b => 
+          countryCities.some(c => b.city.toLowerCase().includes(c.toLowerCase()))
+        );
+      }
+
       // Get major cities from maps service
       const majorCities = mapsService.majorCities || {};
-      const majorCitiesList = Object.keys(majorCities).map(key => ({
-        name: key.charAt(0).toUpperCase() + key.slice(1),
-        key: key,
-        latitude: majorCities[key].lat,
-        longitude: majorCities[key].lng,
-        source: 'predefined'
-      }));
+      let majorCitiesList = Object.keys(majorCities).map(key => {
+        const cityData = majorCities[key];
+        return {
+          name: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1').trim(),
+          key: key,
+          latitude: cityData.lat,
+          longitude: cityData.lng,
+          country: cityData.country || 'Egypt',
+          emirate: cityData.emirate || null,
+          source: 'predefined'
+        };
+      });
+
+      // Filter major cities by country if specified
+      if (country) {
+        const countryCode = Object.keys(COUNTRIES).find(k => 
+          COUNTRIES[k].code === country.toUpperCase() || 
+          COUNTRIES[k].name.toLowerCase().includes(country.toLowerCase())
+        );
+        if (countryCode) {
+          majorCitiesList = majorCitiesList.filter(city => {
+            const cityData = majorCities[city.key];
+            return cityData && cityData.country === COUNTRIES[countryCode].name;
+          });
+        }
+      }
 
       // Combine and format cities from businesses
-      const businessCities = businesses
+      const businessCities = filteredBusinesses
         .filter(b => b.city) // Filter out null/empty cities
         .map(business => {
           const cityKey = business.city.toLowerCase().replace(/\s+/g, '');
           const cityInfo = mapsService.getCityInfo(business.city);
           
+          // Determine country based on city name or governorate
+          let country = 'Egypt'; // Default
+          if (business.city && (
+            business.city.toLowerCase().includes('dubai') ||
+            business.city.toLowerCase().includes('abu dhabi') ||
+            business.city.toLowerCase().includes('sharjah')
+          )) {
+            country = 'UAE';
+          } else if (business.governorate && (
+            business.governorate.toLowerCase().includes('damascus') ||
+            business.governorate.toLowerCase().includes('aleppo') ||
+            business.governorate.toLowerCase().includes('homs')
+          )) {
+            country = 'Syria';
+          }
+          
           return {
             name: business.city,
             key: cityKey,
             governorate: business.governorate,
+            country: country,
             latitude: cityInfo?.lat || null,
             longitude: cityInfo?.lng || null,
             source: 'business'
@@ -72,7 +118,12 @@ class CityController {
         message: 'Cities retrieved successfully',
         data: {
           cities: uniqueCities,
-          total: uniqueCities.length
+          total: uniqueCities.length,
+          countries: Object.values(COUNTRIES).map(c => ({
+            code: c.code,
+            name: c.name,
+            currency: c.currency
+          }))
         }
       });
     } catch (error) {

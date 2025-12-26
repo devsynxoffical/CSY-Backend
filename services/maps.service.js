@@ -18,26 +18,52 @@ class MapsService {
       west: 24.7
     };
 
-    // Major Egyptian cities with coordinates
+    // Major cities with coordinates by country
     this.majorCities = {
-      cairo: { lat: 30.0444, lng: 31.2357 },
-      alexandria: { lat: 31.2001, lng: 29.9187 },
-      damietta: { lat: 31.4165, lng: 31.8133 },
-      mansoura: { lat: 31.0364, lng: 31.3807 },
-      tanta: { lat: 30.7885, lng: 31.0019 },
-      zagazig: { lat: 30.5833, lng: 31.5000 },
-      shibin: { lat: 30.5542, lng: 31.0090 },
-      benha: { lat: 30.4667, lng: 31.1833 },
-      portsaid: { lat: 31.2653, lng: 32.3019 },
-      suez: { lat: 29.9667, lng: 32.5333 },
-      ismailia: { lat: 30.6043, lng: 32.2722 },
-      fayoum: { lat: 29.3084, lng: 30.8428 },
-      minya: { lat: 28.1099, lng: 30.7503 },
-      asyut: { lat: 27.1801, lng: 31.1837 },
-      sohag: { lat: 26.5569, lng: 31.6948 },
-      qena: { lat: 26.1642, lng: 32.7267 },
-      luxor: { lat: 25.6872, lng: 32.6396 },
-      aswan: { lat: 24.0889, lng: 32.8998 }
+      // Egypt
+      cairo: { lat: 30.0444, lng: 31.2357, country: 'Egypt' },
+      alexandria: { lat: 31.2001, lng: 29.9187, country: 'Egypt' },
+      damietta: { lat: 31.4165, lng: 31.8133, country: 'Egypt' },
+      mansoura: { lat: 31.0364, lng: 31.3807, country: 'Egypt' },
+      tanta: { lat: 30.7885, lng: 31.0019, country: 'Egypt' },
+      zagazig: { lat: 30.5833, lng: 31.5000, country: 'Egypt' },
+      shibin: { lat: 30.5542, lng: 31.0090, country: 'Egypt' },
+      benha: { lat: 30.4667, lng: 31.1833, country: 'Egypt' },
+      portsaid: { lat: 31.2653, lng: 32.3019, country: 'Egypt' },
+      suez: { lat: 29.9667, lng: 32.5333, country: 'Egypt' },
+      ismailia: { lat: 30.6043, lng: 32.2722, country: 'Egypt' },
+      fayoum: { lat: 29.3084, lng: 30.8428, country: 'Egypt' },
+      minya: { lat: 28.1099, lng: 30.7503, country: 'Egypt' },
+      asyut: { lat: 27.1801, lng: 31.1837, country: 'Egypt' },
+      sohag: { lat: 26.5569, lng: 31.6948, country: 'Egypt' },
+      qena: { lat: 26.1642, lng: 32.7267, country: 'Egypt' },
+      luxor: { lat: 25.6872, lng: 32.6396, country: 'Egypt' },
+      aswan: { lat: 24.0889, lng: 32.8998, country: 'Egypt' },
+      
+      // UAE / Dubai
+      dubai: { lat: 25.2048, lng: 55.2708, country: 'UAE', emirate: 'Dubai' },
+      abudhabi: { lat: 24.4539, lng: 54.3773, country: 'UAE', emirate: 'Abu Dhabi' },
+      sharjah: { lat: 25.3573, lng: 55.4033, country: 'UAE', emirate: 'Sharjah' },
+      ajman: { lat: 25.4052, lng: 55.5136, country: 'UAE', emirate: 'Ajman' },
+      ummalquwain: { lat: 25.5650, lng: 55.5552, country: 'UAE', emirate: 'Umm Al Quwain' },
+      rasalkhaimah: { lat: 25.7889, lng: 55.9590, country: 'UAE', emirate: 'Ras Al Khaimah' },
+      fujairah: { lat: 25.1288, lng: 56.3264, country: 'UAE', emirate: 'Fujairah' },
+      
+      // Dubai Areas
+      'dubai marina': { lat: 25.0772, lng: 55.1398, country: 'UAE', emirate: 'Dubai' },
+      'downtown dubai': { lat: 25.1972, lng: 55.2744, country: 'UAE', emirate: 'Dubai' },
+      'business bay': { lat: 25.1867, lng: 55.2644, country: 'UAE', emirate: 'Dubai' },
+      'jumeirah': { lat: 25.2000, lng: 55.2400, country: 'UAE', emirate: 'Dubai' },
+      'deira': { lat: 25.2667, lng: 55.3000, country: 'UAE', emirate: 'Dubai' },
+      'bur dubai': { lat: 25.2500, lng: 55.3000, country: 'UAE', emirate: 'Dubai' },
+      'dubai internet city': { lat: 25.0900, lng: 55.1600, country: 'UAE', emirate: 'Dubai' },
+      'dubai media city': { lat: 25.0900, lng: 55.1600, country: 'UAE', emirate: 'Dubai' },
+      'dubai knowledge park': { lat: 25.0900, lng: 55.1600, country: 'UAE', emirate: 'Dubai' },
+      'palm jumeirah': { lat: 25.1124, lng: 55.1390, country: 'UAE', emirate: 'Dubai' },
+      'dubai sports city': { lat: 25.0400, lng: 55.2000, country: 'UAE', emirate: 'Dubai' },
+      'international city': { lat: 25.1500, lng: 55.3500, country: 'UAE', emirate: 'Dubai' },
+      'motor city': { lat: 25.0500, lng: 55.2000, country: 'UAE', emirate: 'Dubai' },
+      'dubai production city': { lat: 25.0900, lng: 55.1600, country: 'UAE', emirate: 'Dubai' }
     };
   }
 
@@ -491,9 +517,37 @@ class MapsService {
   /**
    * Get city information
    */
+  /**
+   * Get city information by name (supports multiple countries)
+   */
   getCityInfo(cityName) {
-    const cityKey = cityName.toLowerCase().replace(/\s+/g, '');
-    return this.majorCities[cityKey] || null;
+    if (!cityName) return null;
+
+    const normalizedName = cityName.toLowerCase().replace(/\s+/g, '');
+    const cityData = this.majorCities[normalizedName];
+
+    if (cityData) {
+      return {
+        lat: cityData.lat,
+        lng: cityData.lng,
+        country: cityData.country || 'Egypt',
+        emirate: cityData.emirate || null
+      };
+    }
+
+    // Try partial match for cities with spaces
+    for (const [key, data] of Object.entries(this.majorCities)) {
+      if (normalizedName.includes(key) || key.includes(normalizedName)) {
+        return {
+          lat: data.lat,
+          lng: data.lng,
+          country: data.country || 'Egypt',
+          emirate: data.emirate || null
+        };
+      }
+    }
+
+    return null;
   }
 
   /**
