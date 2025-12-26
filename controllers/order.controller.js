@@ -284,12 +284,50 @@ class OrderController {
       }
 
       // Return order details
-      const orderDetails = await this._getOrderDetailsHelper(order.id);
+      let orderDetails = null;
+      try {
+        orderDetails = await this._getOrderDetailsHelper(order.id);
+        if (!orderDetails) {
+          logger.warn('Order details helper returned null', { orderId: order.id });
+          // Fallback: return basic order info if helper fails
+          orderDetails = {
+            id: order.id,
+            order_number: order.order_number,
+            status: order.status,
+            order_type: order.order_type,
+            payment_method: order.payment_method,
+            payment_status: order.payment_status,
+            total_amount: order.total_amount,
+            final_amount: order.final_amount,
+            created_at: order.created_at
+          };
+        }
+      } catch (detailsError) {
+        logger.error('Failed to get order details after creation', {
+          orderId: order.id,
+          error: detailsError.message,
+          stack: detailsError.stack
+        });
+        // Fallback: return basic order info
+        orderDetails = {
+          id: order.id,
+          order_number: order.order_number,
+          status: order.status,
+          order_type: order.order_type,
+          payment_method: order.payment_method,
+          payment_status: order.payment_status,
+          total_amount: order.total_amount,
+          final_amount: order.final_amount,
+          created_at: order.created_at
+        };
+      }
 
       res.status(201).json({
         success: true,
         message: 'Order created successfully',
-        data: orderDetails
+        data: {
+          order: orderDetails
+        }
       });
 
     } catch (error) {
@@ -774,7 +812,10 @@ class OrderController {
   async _getOrderDetailsHelper(orderId) {
     try {
       const order = await prisma.order.findUnique({ where: { id: orderId } });
-      if (!order) return null;
+      if (!order) {
+        logger.warn('Order not found in getOrderDetailsHelper', { orderId });
+        return null;
+      }
 
       // Get order items
       const items = await prisma.orderItem.findMany({
@@ -855,7 +896,11 @@ class OrderController {
         driver
       };
     } catch (error) {
-      logger.error('Get order details helper error', { error: error.message });
+      logger.error('Get order details helper error', {
+        orderId,
+        error: error.message,
+        stack: error.stack
+      });
       return null;
     }
   }
