@@ -1,0 +1,482 @@
+{
+	"info": {
+		"_postman_id": "order-creation-flow-2025",
+		"name": "Order Creation & Management Flow - Complete",
+		"description": "Complete step-by-step flow: User Login → Get Products → Create Order → Business Login → Get Orders → Reject Order → Accept Order",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. User Authentication & Order Creation",
+			"item": [
+				{
+					"name": "Step 1: User Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set(\"userToken\", jsonData.data.token);",
+									"        pm.environment.set(\"userId\", jsonData.data.user.id);",
+									"        console.log(\"User token saved: \" + jsonData.data.token);",
+									"    }",
+									"}",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('token');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Login as a user to get authentication token. Update email and password in the body."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 2: Get Business Products",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.products && jsonData.data.products.length > 0) {",
+									"        // Save first product ID for order creation",
+									"        var firstProduct = jsonData.data.products[0];",
+									"        pm.environment.set(\"productId\", firstProduct.id);",
+									"        pm.environment.set(\"businessId\", firstProduct.business_id);",
+									"        console.log(\"Product ID saved: \" + firstProduct.id);",
+									"        console.log(\"Business ID saved: \" + firstProduct.business_id);",
+									"    }",
+									"}",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has products\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('products');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business/{{businessId}}/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"{{businessId}}",
+								"products"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Items per page"
+								}
+							]
+						},
+						"description": "Get products from a business. Replace {{businessId}} with actual business ID or use the one saved from previous step."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 3: Create Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.order) {",
+									"        pm.environment.set(\"orderId\", jsonData.data.order.id);",
+									"        pm.environment.set(\"orderNumber\", jsonData.data.order.order_number);",
+									"        console.log(\"Order ID saved: \" + jsonData.data.order.id);",
+									"        console.log(\"Order Number saved: \" + jsonData.data.order.order_number);",
+									"    }",
+									"}",
+									"",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Order created successfully\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data).to.have.property('order');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{userToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"items\": [\n        {\n            \"product_id\": \"{{productId}}\",\n            \"quantity\": 2\n        }\n    ],\n    \"order_type\": \"delivery\",\n    \"payment_method\": \"cash\",\n    \"delivery_address\": {\n        \"street\": \"123 Main Street\",\n        \"city\": \"Cairo\",\n        \"latitude\": 30.0444,\n        \"longitude\": 31.2357\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/orders",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						},
+						"description": "Create a new order. Uses productId from Step 2. The order will be in 'pending' status."
+					},
+					"response": []
+				}
+			],
+			"description": "Complete flow for user to login, browse products, and create an order"
+		},
+		{
+			"name": "2. Business Order Management",
+			"item": [
+				{
+					"name": "Step 4: Business Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.token) {",
+									"        pm.environment.set(\"businessToken\", jsonData.data.token);",
+									"        pm.environment.set(\"businessId\", jsonData.data.business.id);",
+									"        console.log(\"Business token saved: \" + jsonData.data.token);",
+									"        console.log(\"Business ID saved: \" + jsonData.data.business.id);",
+									"    }",
+									"}",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('token');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"business@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/business/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"login"
+							]
+						},
+						"description": "Login as business owner to manage orders. Update email and password in the body."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 5: Get Business Orders",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.orders && jsonData.data.orders.length > 0) {",
+									"        // Find pending order or use first order",
+									"        var pendingOrder = jsonData.data.orders.find(o => o.status === 'pending');",
+									"        var orderToUse = pendingOrder || jsonData.data.orders[0];",
+									"        if (orderToUse) {",
+									"            pm.environment.set(\"orderId\", orderToUse.id);",
+									"            pm.environment.set(\"orderNumber\", orderToUse.order_number);",
+									"            console.log(\"Order ID saved: \" + orderToUse.id);",
+									"            console.log(\"Order Number saved: \" + orderToUse.order_number);",
+									"        }",
+									"    }",
+									"}",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has orders\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.have.property('orders');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{businessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/business/orders",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Items per page"
+								},
+								{
+									"key": "status",
+									"value": "pending",
+									"description": "Filter by status (optional)",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Get all orders for the business. This will show pending orders that can be accepted or rejected."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 6: Reject Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Order rejected successfully\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data.status).to.equal('cancelled');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{businessToken}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"reason\": \"Out of stock\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/business/orders/{{orderId}}/reject",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"orders",
+								"{{orderId}}",
+								"reject"
+							]
+						},
+						"description": "Reject a pending order. Uses orderId from Step 5. The order status will change to 'cancelled'."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 7: Accept Order",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Order accepted successfully\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.success).to.be.true;",
+									"    pm.expect(jsonData.data.status).to.equal('accepted');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{businessToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/business/orders/{{orderId}}/accept",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"orders",
+								"{{orderId}}",
+								"accept"
+							]
+						},
+						"description": "Accept a pending order. Uses orderId from Step 5. The order status will change to 'accepted'. Note: You need a pending order to accept. If you rejected the order in Step 6, create a new order first."
+					},
+					"response": []
+				}
+			],
+			"description": "Business owner flow to login, view orders, reject and accept orders"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://csy-backend-production.up.railway.app",
+			"type": "string"
+		},
+		{
+			"key": "userToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "businessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "productId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "businessId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "userId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orderNumber",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+
