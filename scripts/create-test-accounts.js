@@ -182,7 +182,32 @@ async function createTestAccounts() {
         console.log('💡 Use these credentials in Postman to test endpoints.\n');
 
     } catch (error) {
-        console.error('❌ Failed to create test accounts:', error.message);
+        console.error('\n❌ Failed to create test accounts:', error.message);
+        
+        // Provide helpful error messages
+        if (error.code === 'P1001' || error.message.includes("Can't reach database server")) {
+            console.error('\n⚠️  Database Connection Issue Detected!\n');
+            console.error('The script cannot connect to the database. This could be because:');
+            console.error('   1. Railway database is not accessible from your local machine');
+            console.error('   2. Database server is down or not running');
+            console.error('   3. Network/firewall blocking the connection\n');
+            console.error('📋 Solutions:');
+            console.error('   Option 1: Create test accounts via API (Recommended)');
+            console.error('   - Use the production API: https://csy-backend-production.up.railway.app');
+            console.error('   - Register user via: POST /api/auth/register');
+            console.error('   - Register business via: POST /api/business/register\n');
+            console.error('   Option 2: Use Railway CLI or Dashboard');
+            console.error('   - Access Railway dashboard and run SQL commands directly');
+            console.error('   - Or use Railway CLI to connect to database\n');
+            console.error('   Option 3: Set up local database');
+            console.error('   - Update DATABASE_URL in .env to point to local PostgreSQL');
+            console.error('   - Run: npx prisma migrate dev\n');
+            
+            const dbUrl = process.env.DATABASE_URL || 'Not found';
+            const maskedUrl = dbUrl.replace(/:[^:@]+@/, ':****@');
+            console.error('📋 Current DATABASE_URL:', maskedUrl);
+        }
+        
         throw error;
     } finally {
         await prisma.$disconnect();
