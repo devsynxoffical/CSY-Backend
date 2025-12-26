@@ -66,7 +66,7 @@
 					"response": []
 				},
 				{
-					"name": "Step 2: Get Business Products",
+					"name": "Step 2: Get All Businesses",
 					"event": [
 						{
 							"listen": "test",
@@ -74,13 +74,12 @@
 								"exec": [
 									"if (pm.response.code === 200) {",
 									"    var jsonData = pm.response.json();",
-									"    if (jsonData.data && jsonData.data.products && jsonData.data.products.length > 0) {",
-									"        // Save first product ID for order creation",
-									"        var firstProduct = jsonData.data.products[0];",
-									"        pm.environment.set(\"productId\", firstProduct.id);",
-									"        pm.environment.set(\"businessId\", firstProduct.business_id);",
-									"        console.log(\"Product ID saved: \" + firstProduct.id);",
-									"        console.log(\"Business ID saved: \" + firstProduct.business_id);",
+									"    if (jsonData.data && jsonData.data.businesses && jsonData.data.businesses.length > 0) {",
+									"        // Save first business ID for getting products",
+									"        var firstBusiness = jsonData.data.businesses[0];",
+									"        pm.environment.set(\"businessId\", firstBusiness.id);",
+									"        console.log(\"Business ID saved: \" + firstBusiness.id);",
+									"        console.log(\"Business Name: \" + firstBusiness.business_name);",
 									"    }",
 									"}",
 									"",
@@ -88,9 +87,9 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Response has products\", function () {",
+									"pm.test(\"Response has businesses\", function () {",
 									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData.data).to.have.property('products');",
+									"    pm.expect(jsonData.data).to.have.property('businesses');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -101,7 +100,67 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/api/business/{{businessId}}/products",
+							"raw": "{{base_url}}/api/business?page=1&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number"
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Items per page"
+								}
+							]
+						},
+						"description": "Get list of all active businesses. This will save the first business ID to use in the next step."
+					},
+					"response": []
+				},
+				{
+					"name": "Step 3: Get Business Products",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.data && jsonData.data.length > 0) {",
+									"        // Save first product ID for order creation",
+									"        var firstProduct = jsonData.data[0];",
+									"        pm.environment.set(\"productId\", firstProduct.id);",
+									"        console.log(\"Product ID saved: \" + firstProduct.id);",
+									"        console.log(\"Product Name: \" + firstProduct.name);",
+									"    }",
+									"}",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has products\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData.data).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business/{{businessId}}/products?page=1&limit=20",
 							"host": [
 								"{{base_url}}"
 							],
@@ -124,12 +183,12 @@
 								}
 							]
 						},
-						"description": "Get products from a business. Replace {{businessId}} with actual business ID or use the one saved from previous step."
+						"description": "Get products from the business selected in Step 2. Uses businessId saved from previous step."
 					},
 					"response": []
 				},
 				{
-					"name": "Step 3: Create Order",
+					"name": "Step 4: Create Order",
 					"event": [
 						{
 							"listen": "test",
@@ -197,7 +256,7 @@
 			"name": "2. Business Order Management",
 			"item": [
 				{
-					"name": "Step 4: Business Login",
+					"name": "Step 5: Business Login",
 					"event": [
 						{
 							"listen": "test",
@@ -254,7 +313,7 @@
 					"response": []
 				},
 				{
-					"name": "Step 5: Get Business Orders",
+					"name": "Step 6: Get Business Orders",
 					"event": [
 						{
 							"listen": "test",
@@ -331,7 +390,7 @@
 					"response": []
 				},
 				{
-					"name": "Step 6: Reject Order",
+					"name": "Step 7: Reject Order",
 					"event": [
 						{
 							"listen": "test",
@@ -386,7 +445,7 @@
 					"response": []
 				},
 				{
-					"name": "Step 7: Accept Order",
+					"name": "Step 8: Accept Order",
 					"event": [
 						{
 							"listen": "test",
