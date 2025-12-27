@@ -1,5 +1,5 @@
-const { QRCode, Reservation, Order, Business, User, Driver } = require('../models');
-const { generateQRToken, generateQRDataURL, decodeQRData } = require('../utils');
+const { prisma } = require('../config/database');
+const { generateQRToken, generateQRDataURL, decodeQRData } = require('../utils/qrGenerator');
 const { logger } = require('../utils');
 
 /**
@@ -22,41 +22,90 @@ class QRService {
   async generateQR(type, referenceId, additionalData = {}) {
     try {
       if (!Object.keys(this.expiryTimes).includes(type)) {
-        throw new Error(`Invalid QR type: ${type}`);
+        return {
+          success: false,
+          message: `Invalid QR type: ${type}`,
+          error: 'INVALID_QR_TYPE'
+        };
       }
 
-      const qrToken = generateQRToken(type, referenceId);
+      const qrCode = generateQRToken(type, referenceId);
       const expiresAt = new Date(Date.now() + this.expiryTimes[type]);
 
-      // Validate reference exists
-      await this.validateReference(type, referenceId);
+      // Validate reference exists (skip for payment/discount)
+      if (type !== 'payment' && type !== 'discount') {
+        const isValid = await this.validateReference(type, referenceId);
+        if (!isValid) {
+          return {
+            success: false,
+            message: `${type} with ID ${referenceId} not found`,
+            error: 'REFERENCE_NOT_FOUND'
+          };
+        }
+      }
 
-      // Create QR code record
-      const qrCode = await QRCode.create({
-        qr_type: type,
+      // Prepare QR data
+      const qrData = {
+        type,
         reference_id: referenceId,
-        qr_token: qrToken,
-        expires_at: expiresAt,
-        user_id: additionalData.user_id,
-        business_id: additionalData.business_id,
-        driver_id: additionalData.driver_id
+        qr_token: qrCode,
+        timestamp: Date.now(),
+        ...additionalData
+      };
+
+      // Create QR code record using Prisma
+      const createdQR = await prisma.qRCode.create({
+        data: {
+          code: qrCode, // Schema uses 'code' not 'qr_token'
+          type: type, // Schema uses 'type' not 'qr_type'
+          reference_id: referenceId,
+          user_id: additionalData.user_id || null,
+          business_id: additionalData.business_id || null,
+          cashier_id: additionalData.cashier_id || null,
+          expires_at: expiresAt,
+          data: qrData, // Store full QR data in JSON field
+          is_used: false
+        }
       });
+
+      // Generate QR image data URL
+      let qrDataURL = null;
+      try {
+        qrDataURL = await generateQRDataURL(JSON.stringify(qrData));
+      } catch (error) {
+        logger.warn('QR image generation failed', { error: error.message });
+      }
 
       logger.info('QR code generated', {
-        id: qrCode.id,
+        id: createdQR.id,
         type,
         referenceId,
-        token: qrToken
+        code: qrCode
       });
 
-      return qrCode;
+      return {
+        success: true,
+        data: {
+          id: createdQR.id,
+          qr_token: createdQR.code, // Return as qr_token for compatibility
+          qr_type: createdQR.type, // Return as qr_type for compatibility
+          reference_id: createdQR.reference_id,
+          qr_data_url: qrDataURL,
+          expires_at: createdQR.expires_at,
+          type: createdQR.type
+        }
+      };
     } catch (error) {
       logger.error('QR code generation failed', {
         type,
         referenceId,
         error: error.message
       });
-      throw error;
+      return {
+        success: false,
+        message: error.message || 'Failed to generate QR code',
+        error: 'QR_GENERATION_FAILED'
+      };
     }
   }
 
@@ -64,86 +113,169 @@ class QRService {
    * Validate that the reference exists
    */
   async validateReference(type, referenceId) {
-    let model;
-    let idField = 'id';
+    try {
+      switch (type) {
+        case 'reservation':
+          const reservation = await prisma.reservation.findUnique({
+            where: { id: referenceId }
+          });
+          return !!reservation;
 
-    switch (type) {
-      case 'reservation':
-        model = Reservation;
-        break;
-      case 'order':
-        model = Order;
-        break;
-      case 'discount':
-      case 'payment':
-        // These might reference different models based on context
-        return true; // Skip validation for now
-      case 'driver_pickup':
-        // This might reference an order or delivery
-        model = Order;
-        break;
-      default:
-        throw new Error(`Unknown QR type: ${type}`);
+        case 'order':
+        case 'driver_pickup':
+          const order = await prisma.order.findUnique({
+            where: { id: referenceId }
+          });
+          return !!order;
+
+        case 'discount':
+        case 'payment':
+          // Skip validation for these types
+          return true;
+
+        default:
+          return false;
+      }
+    } catch (error) {
+      logger.error('Reference validation failed', { type, referenceId, error: error.message });
+      return false;
     }
+  }
 
-    const exists = await model.findOne({ where: { [idField]: referenceId } });
-    if (!exists) {
-      throw new Error(`${type} with ID ${referenceId} not found`);
+  /**
+   * Validate QR code
+   */
+  async validateQR(qrToken) {
+    try {
+      const qrCode = await prisma.qRCode.findUnique({
+        where: { code: qrToken }
+      });
+
+      if (!qrCode) {
+        return {
+          isValid: false,
+          message: 'QR code not found',
+          error: 'QR_NOT_FOUND',
+          reason: 'QR code does not exist'
+        };
+      }
+
+      // Check if expired
+      if (qrCode.expires_at && new Date() > new Date(qrCode.expires_at)) {
+        return {
+          isValid: false,
+          message: 'QR code has expired',
+          error: 'QR_EXPIRED',
+          reason: 'QR code has passed its expiration date'
+        };
+      }
+
+      // Check if already used (for one-time use codes)
+      if (qrCode.is_used && ['discount', 'payment'].includes(qrCode.type)) {
+        return {
+          isValid: false,
+          message: 'QR code has already been used',
+          error: 'QR_ALREADY_USED',
+          reason: 'This QR code can only be used once'
+        };
+      }
+
+      return {
+        isValid: true,
+        qrData: {
+          id: qrCode.id,
+          type: qrCode.type,
+          reference_id: qrCode.reference_id,
+          expires_at: qrCode.expires_at,
+          is_used: qrCode.is_used,
+          data: qrCode.data
+        }
+      };
+    } catch (error) {
+      logger.error('QR validation failed', { qrToken, error: error.message });
+      return {
+        isValid: false,
+        message: 'Failed to validate QR code',
+        error: 'VALIDATION_FAILED',
+        reason: error.message
+      };
     }
-
-    return true;
   }
 
   /**
    * Scan and process QR code
    */
-  async scanQR(qrToken, scannerUserId = null, scannerData = {}) {
+  async scanQR(qrToken, scannerUserId = null, action = null, additionalData = {}) {
     try {
-      // Find QR code by token
-      const qrCode = await QRCode.findOne({
-        where: { qr_token: qrToken }
+      // Find QR code by code (token)
+      const qrCode = await prisma.qRCode.findUnique({
+        where: { code: qrToken }
       });
 
       if (!qrCode) {
-        throw new Error('QR code not found');
+        return {
+          success: false,
+          message: 'QR code not found',
+          error: 'QR_NOT_FOUND',
+          statusCode: 404
+        };
       }
 
       // Check if expired
-      if (new Date() > qrCode.expires_at) {
-        throw new Error('QR code has expired');
+      if (qrCode.expires_at && new Date() > new Date(qrCode.expires_at)) {
+        return {
+          success: false,
+          message: 'QR code has expired',
+          error: 'QR_EXPIRED',
+          statusCode: 400
+        };
       }
 
       // Check if already used (for one-time use codes)
-      if (qrCode.is_used && ['discount', 'payment'].includes(qrCode.qr_type)) {
-        throw new Error('QR code has already been used');
+      if (qrCode.is_used && ['discount', 'payment'].includes(qrCode.type)) {
+        return {
+          success: false,
+          message: 'QR code has already been used',
+          error: 'QR_ALREADY_USED',
+          statusCode: 400
+        };
       }
 
       // Process based on type
-      const result = await this.processQRCode(qrCode, scannerUserId, scannerData);
+      const result = await this.processQRCode(qrCode, scannerUserId, additionalData);
 
-      // Mark as used if applicable
-      if (['discount', 'payment'].includes(qrCode.qr_type)) {
-        await qrCode.update({ is_used: true });
+      if (!result.success) {
+        return {
+          success: false,
+          message: result.message || 'Failed to process QR code',
+          error: result.error || 'PROCESSING_FAILED',
+          statusCode: result.statusCode || 400,
+          data: result.data
+        };
       }
 
-      // Update scan count and timestamp
-      await qrCode.update({
-        scan_count: qrCode.scan_count + 1,
-        last_scanned_at: new Date()
+      // Mark as used if applicable
+      const updateData = {
+        is_used: ['discount', 'payment'].includes(qrCode.type) ? true : qrCode.is_used,
+        used_at: ['discount', 'payment'].includes(qrCode.type) ? new Date() : qrCode.used_at
+      };
+
+      await prisma.qRCode.update({
+        where: { id: qrCode.id },
+        data: updateData
       });
 
       logger.info('QR code scanned successfully', {
         qrId: qrCode.id,
-        type: qrCode.qr_type,
+        type: qrCode.type,
         scannerUserId,
         result: result.success
       });
 
       return {
         success: true,
-        qrCode,
-        result,
-        message: result.message
+        message: result.message || 'QR code processed successfully',
+        data: result
       };
     } catch (error) {
       logger.error('QR code scan failed', {
@@ -154,7 +286,9 @@ class QRService {
 
       return {
         success: false,
-        error: error.message
+        message: error.message || 'Failed to scan QR code',
+        error: 'SCAN_FAILED',
+        statusCode: 500
       };
     }
   }
@@ -163,7 +297,7 @@ class QRService {
    * Process QR code based on type
    */
   async processQRCode(qrCode, scannerUserId, scannerData) {
-    switch (qrCode.qr_type) {
+    switch (qrCode.type) {
       case 'reservation':
         return await this.processReservationQR(qrCode, scannerUserId);
 
@@ -180,7 +314,11 @@ class QRService {
         return await this.processDriverPickupQR(qrCode, scannerUserId);
 
       default:
-        throw new Error(`Unknown QR code type: ${qrCode.qr_type}`);
+        return {
+          success: false,
+          message: `Unknown QR code type: ${qrCode.type}`,
+          error: 'UNKNOWN_QR_TYPE'
+        };
     }
   }
 
@@ -189,38 +327,67 @@ class QRService {
    */
   async processReservationQR(qrCode, scannerUserId) {
     try {
-      const reservation = await Reservation.findOne({
+      if (!qrCode.reference_id) {
+        return {
+          success: false,
+          message: 'Reservation ID not found in QR code',
+          error: 'MISSING_REFERENCE'
+        };
+      }
+
+      const reservation = await prisma.reservation.findUnique({
         where: { id: qrCode.reference_id },
-        include: [{ model: Business, as: 'business' }]
+        include: { business: true }
       });
 
       if (!reservation) {
-        throw new Error('Reservation not found');
+        return {
+          success: false,
+          message: 'Reservation not found',
+          error: 'RESERVATION_NOT_FOUND'
+        };
       }
 
       // Verify scanner has permission (business owner or staff)
       if (qrCode.business_id && qrCode.business_id !== scannerUserId) {
-        const business = await Business.findOne({ where: { id: qrCode.business_id } });
+        const business = await prisma.business.findUnique({
+          where: { id: qrCode.business_id }
+        });
         if (!business || business.owner_email !== scannerUserId) {
-          throw new Error('Unauthorized to scan this QR code');
+          return {
+            success: false,
+            message: 'Unauthorized to scan this QR code',
+            error: 'UNAUTHORIZED',
+            statusCode: 403
+          };
         }
       }
 
       // Update reservation status if appropriate
       if (reservation.status === 'confirmed') {
-        await reservation.update({ status: 'completed' });
+        await prisma.reservation.update({
+          where: { id: reservation.id },
+          data: { status: 'completed' }
+        });
       }
 
       return {
         success: true,
         type: 'reservation',
         reservationId: reservation.id,
-        customerName: reservation.customer_name,
-        businessName: reservation.business_name,
-        message: 'Reservation validated successfully'
+        message: 'Reservation validated successfully',
+        data: {
+          reservation_id: reservation.id,
+          status: 'completed'
+        }
       };
     } catch (error) {
-      throw new Error(`Reservation QR processing failed: ${error.message}`);
+      logger.error('Reservation QR processing failed', { error: error.message });
+      return {
+        success: false,
+        message: `Reservation QR processing failed: ${error.message}`,
+        error: 'PROCESSING_FAILED'
+      };
     }
   }
 
@@ -229,43 +396,51 @@ class QRService {
    */
   async processOrderQR(qrCode, scannerUserId) {
     try {
-      const order = await Order.findOne({
+      if (!qrCode.reference_id) {
+        return {
+          success: false,
+          message: 'Order ID not found in QR code',
+          error: 'MISSING_REFERENCE'
+        };
+      }
+
+      const order = await prisma.order.findUnique({
         where: { id: qrCode.reference_id },
-        include: [
-          { model: User, as: 'user' },
-          { model: Business, as: 'business' },
-          { model: Driver, as: 'driver' }
-        ]
+        include: {
+          user: true,
+          order_items: {
+            include: {
+              business: true
+            }
+          }
+        }
       });
 
       if (!order) {
-        throw new Error('Order not found');
+        return {
+          success: false,
+          message: 'Order not found',
+          error: 'ORDER_NOT_FOUND'
+        };
       }
 
       // Different processing based on scanner type
       if (qrCode.business_id) {
         // Business scanning for order pickup
-        if (order.status === 'ready') {
-          await order.update({ status: 'completed' });
+        if (order.status === 'preparing' || order.status === 'accepted') {
+          await prisma.order.update({
+            where: { id: order.id },
+            data: { status: 'waiting_driver' }
+          });
           return {
             success: true,
             type: 'order_pickup',
             orderId: order.id,
-            message: 'Order picked up successfully'
-          };
-        }
-      } else if (qrCode.driver_id) {
-        // Driver scanning for delivery
-        if (order.status === 'in_delivery') {
-          await order.update({
-            status: 'completed',
-            actual_delivery_time: new Date()
-          });
-          return {
-            success: true,
-            type: 'order_delivery',
-            orderId: order.id,
-            message: 'Order delivered successfully'
+            message: 'Order ready for pickup',
+            data: {
+              order_id: order.id,
+              status: 'waiting_driver'
+            }
           };
         }
       }
@@ -274,11 +449,20 @@ class QRService {
         success: true,
         type: 'order_info',
         orderId: order.id,
-        status: order.status,
-        message: `Order status: ${order.status}`
+        message: `Order status: ${order.status}`,
+        data: {
+          order_id: order.id,
+          status: order.status,
+          order_number: order.order_number
+        }
       };
     } catch (error) {
-      throw new Error(`Order QR processing failed: ${error.message}`);
+      logger.error('Order QR processing failed', { error: error.message });
+      return {
+        success: false,
+        message: `Order QR processing failed: ${error.message}`,
+        error: 'PROCESSING_FAILED'
+      };
     }
   }
 
@@ -287,22 +471,25 @@ class QRService {
    */
   async processDiscountQR(qrCode, scannerUserId) {
     try {
-      // This would integrate with a discount/coupon system
-      // For now, return basic discount info
       return {
         success: true,
         type: 'discount',
         discountId: qrCode.reference_id,
         message: 'Discount applied successfully',
-        discount: {
-          id: qrCode.reference_id,
+        data: {
+          discount_id: qrCode.reference_id,
           type: 'percentage',
-          value: 10, // This would come from discount data
-          description: '10% off your order'
+          value: qrCode.data?.discount_percentage || 10,
+          description: 'Discount applied'
         }
       };
     } catch (error) {
-      throw new Error(`Discount QR processing failed: ${error.message}`);
+      logger.error('Discount QR processing failed', { error: error.message });
+      return {
+        success: false,
+        message: `Discount QR processing failed: ${error.message}`,
+        error: 'PROCESSING_FAILED'
+      };
     }
   }
 
@@ -311,23 +498,28 @@ class QRService {
    */
   async processPaymentQR(qrCode, scannerUserId, scannerData) {
     try {
-      const paymentAmount = scannerData.amount || 0;
+      const paymentAmount = scannerData.amount || qrCode.data?.amount || 0;
 
       return {
         success: true,
         type: 'payment',
         paymentId: qrCode.reference_id,
         amount: paymentAmount,
-        message: `Payment of EGP ${paymentAmount / 100} processed`,
-        payment: {
-          id: qrCode.reference_id,
+        message: `Payment of ${paymentAmount / 100} EGP processed`,
+        data: {
+          payment_id: qrCode.reference_id,
           amount: paymentAmount,
           currency: 'EGP',
           status: 'completed'
         }
       };
     } catch (error) {
-      throw new Error(`Payment QR processing failed: ${error.message}`);
+      logger.error('Payment QR processing failed', { error: error.message });
+      return {
+        success: false,
+        message: `Payment QR processing failed: ${error.message}`,
+        error: 'PROCESSING_FAILED'
+      };
     }
   }
 
@@ -336,30 +528,64 @@ class QRService {
    */
   async processDriverPickupQR(qrCode, scannerUserId) {
     try {
-      const order = await Order.findOne({ where: { id: qrCode.reference_id } });
+      if (!qrCode.reference_id) {
+        return {
+          success: false,
+          message: 'Order ID not found in QR code',
+          error: 'MISSING_REFERENCE'
+        };
+      }
+
+      const order = await prisma.order.findUnique({
+        where: { id: qrCode.reference_id }
+      });
 
       if (!order) {
-        throw new Error('Order not found');
+        return {
+          success: false,
+          message: 'Order not found',
+          error: 'ORDER_NOT_FOUND'
+        };
       }
 
       // Verify driver is assigned to this order
-      if (order.driver_id !== scannerUserId) {
-        throw new Error('You are not assigned to this order');
+      if (order.driver_id && order.driver_id !== scannerUserId) {
+        return {
+          success: false,
+          message: 'You are not assigned to this order',
+          error: 'UNAUTHORIZED',
+          statusCode: 403
+        };
       }
 
       // Update order status
-      if (order.status === 'accepted') {
-        await order.update({ status: 'picked_up' });
+      if (order.status === 'waiting_driver' || order.status === 'accepted') {
+        await prisma.order.update({
+          where: { id: order.id },
+          data: { 
+            status: 'in_delivery',
+            driver_id: scannerUserId
+          }
+        });
       }
 
       return {
         success: true,
         type: 'driver_pickup',
         orderId: order.id,
-        message: 'Order picked up successfully'
+        message: 'Order picked up successfully',
+        data: {
+          order_id: order.id,
+          status: 'in_delivery'
+        }
       };
     } catch (error) {
-      throw new Error(`Driver pickup QR processing failed: ${error.message}`);
+      logger.error('Driver pickup QR processing failed', { error: error.message });
+      return {
+        success: false,
+        message: `Driver pickup QR processing failed: ${error.message}`,
+        error: 'PROCESSING_FAILED'
+      };
     }
   }
 
@@ -368,8 +594,8 @@ class QRService {
    */
   async getQRByToken(qrToken) {
     try {
-      const qrCode = await QRCode.findOne({
-        where: { qr_token: qrToken }
+      const qrCode = await prisma.qRCode.findUnique({
+        where: { code: qrToken }
       });
 
       if (!qrCode) {
@@ -378,13 +604,13 @@ class QRService {
 
       return {
         id: qrCode.id,
-        type: qrCode.qr_type,
+        type: qrCode.type,
         referenceId: qrCode.reference_id,
         expiresAt: qrCode.expires_at,
         isUsed: qrCode.is_used,
-        isExpired: new Date() > qrCode.expires_at,
-        scanCount: qrCode.scan_count,
-        lastScannedAt: qrCode.last_scanned_at
+        isExpired: qrCode.expires_at ? new Date() > new Date(qrCode.expires_at) : false,
+        usedAt: qrCode.used_at,
+        data: qrCode.data
       };
     } catch (error) {
       logger.error('Get QR by token failed', { qrToken, error: error.message });
@@ -397,18 +623,21 @@ class QRService {
    */
   async getQRCodesByReference(type, referenceId) {
     try {
-      const qrCodes = await QRCode.findAll({
-        where: { qr_type: type, reference_id: referenceId },
-        order: [['created_at', 'DESC']]
+      const qrCodes = await prisma.qRCode.findMany({
+        where: { 
+          type: type,
+          reference_id: referenceId
+        },
+        orderBy: { created_at: 'desc' }
       });
 
       return qrCodes.map(qr => ({
         id: qr.id,
-        token: qr.qr_token,
-        type: qr.qr_type,
+        token: qr.code,
+        type: qr.type,
         expiresAt: qr.expires_at,
         isUsed: qr.is_used,
-        scanCount: qr.scan_count,
+        usedAt: qr.used_at,
         createdAt: qr.created_at
       }));
     } catch (error) {
@@ -419,136 +648,6 @@ class QRService {
       });
       throw error;
     }
-  }
-
-  /**
-   * Regenerate QR code (for expired or lost codes)
-   */
-  async regenerateQR(qrId, newExpiryHours = null) {
-    try {
-      const existingQR = await QRCode.findOne({ where: { id: qrId } });
-
-      if (!existingQR) {
-        throw new Error('QR code not found');
-      }
-
-      const newExpiry = newExpiryHours
-        ? new Date(Date.now() + (newExpiryHours * 60 * 60 * 1000))
-        : new Date(Date.now() + this.expiryTimes[existingQR.qr_type]);
-
-      const newToken = generateQRToken(existingQR.qr_type, existingQR.reference_id);
-
-      await existingQR.update({
-        qr_token: newToken,
-        expires_at: newExpiry,
-        is_used: false,
-        scan_count: 0,
-        last_scanned_at: null
-      });
-
-      logger.info('QR code regenerated', {
-        qrId,
-        newToken,
-        type: existingQR.qr_type
-      });
-
-      return existingQR;
-    } catch (error) {
-      logger.error('QR code regeneration failed', { qrId, error: error.message });
-      throw error;
-    }
-  }
-
-  /**
-   * Delete expired QR codes (cleanup job)
-   */
-  async deleteExpiredQRCodes() {
-    try {
-      const deletedCount = await QRCode.destroy({
-        where: {
-          expires_at: { [Op.lt]: new Date() },
-          is_used: true
-        }
-      });
-
-      logger.info('Expired QR codes deleted', { deletedCount });
-
-      return deletedCount;
-    } catch (error) {
-      logger.error('Delete expired QR codes failed', { error: error.message });
-      throw error;
-    }
-  }
-
-  /**
-   * Get QR code statistics
-   */
-  async getQRStats(startDate, endDate) {
-    try {
-      const stats = await QRCode.findAll({
-        where: {
-          created_at: { [Op.between]: [startDate, endDate] }
-        },
-        attributes: [
-          'qr_type',
-          [sequelize.fn('COUNT', sequelize.col('id')), 'total_count'],
-          [sequelize.fn('SUM', sequelize.col('scan_count')), 'total_scans'],
-          [sequelize.fn('SUM', sequelize.literal('CASE WHEN is_used THEN 1 ELSE 0 END')), 'used_count']
-        ],
-        group: ['qr_type']
-      });
-
-      return stats.map(stat => ({
-        type: stat.qr_type,
-        totalCount: parseInt(stat.dataValues.total_count),
-        totalScans: parseInt(stat.dataValues.total_scans || 0),
-        usedCount: parseInt(stat.dataValues.used_count || 0),
-        usageRate: parseInt(stat.dataValues.total_count) > 0
-          ? Math.round((parseInt(stat.dataValues.used_count || 0) / parseInt(stat.dataValues.total_count)) * 100)
-          : 0
-      }));
-    } catch (error) {
-      logger.error('Get QR stats failed', { error: error.message });
-      throw error;
-    }
-  }
-
-  /**
-   * Bulk generate QR codes
-   */
-  async bulkGenerateQRCodes(qrRequests) {
-    const results = {
-      successful: 0,
-      failed: 0,
-      qrCodes: [],
-      errors: []
-    };
-
-    for (const request of qrRequests) {
-      try {
-        const qrCode = await this.generateQR(
-          request.type,
-          request.referenceId,
-          request.additionalData || {}
-        );
-        results.qrCodes.push(qrCode);
-        results.successful++;
-      } catch (error) {
-        results.errors.push({
-          request,
-          error: error.message
-        });
-        results.failed++;
-      }
-    }
-
-    logger.info('Bulk QR generation completed', {
-      total: qrRequests.length,
-      successful: results.successful,
-      failed: results.failed
-    });
-
-    return results;
   }
 }
 

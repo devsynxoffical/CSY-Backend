@@ -105,7 +105,7 @@ class QRController {
           is_valid: true,
           qr_data: validationResult.qrData,
           expires_at: validationResult.qrData.expires_at,
-          qr_type: validationResult.qrData.qr_type,
+          qr_type: validationResult.qrData.type, // Map type to qr_type for compatibility
           reference_id: validationResult.qrData.reference_id
         }
       });
