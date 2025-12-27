@@ -392,7 +392,10 @@ class OrderController {
       const userId = req.user.id;
       const updates = req.body;
 
-      const order = await Order.findOne({ id });
+      // Find order using Prisma
+      const order = await prisma.order.findUnique({
+        where: { id }
+      });
 
       if (!order) {
         return res.status(404).json({
@@ -438,11 +441,11 @@ class OrderController {
         });
       }
 
-      // Update order
-      await Order.findOneAndUpdate(
-        { id },
-        { ...updateFields, updated_at: new Date() }
-      );
+      // Update order using Prisma
+      await prisma.order.update({
+        where: { id },
+        data: { ...updateFields, updated_at: new Date() }
+      });
 
       const updatedOrder = await this._getOrderDetailsHelper(id);
 
@@ -590,7 +593,9 @@ class OrderController {
         take: parseInt(limit)
       });
 
-      const total = await Order.countDocuments(query);
+      const total = await prisma.order.count({
+        where: query
+      });
 
       // Get order details for each order
       const ordersWithDetails = [];
@@ -735,7 +740,10 @@ class OrderController {
       const { id } = req.params;
       const userId = req.user.id;
 
-      const order = await Order.findOne({ id });
+      // Find order using Prisma
+      const order = await prisma.order.findUnique({
+        where: { id }
+      });
 
       if (!order) {
         return res.status(404).json({
