@@ -50,8 +50,9 @@ const generateQRDataURL = async (data, options = {}) => {
     const dataURL = await QRCode.default.toDataURL(data, qrOptions);
     return dataURL;
   } catch (error) {
-    console.error('QR Code generation error:', error);
-    throw new Error('QR code generation failed. Please install qrcode package: npm install qrcode');
+    // Return null instead of throwing - QR code still works without image
+    console.warn('QR Code image generation failed (optional):', error.message);
+    return null;
   }
 };
 
@@ -80,10 +81,13 @@ const generateQRBuffer = async (data, options = {}) => {
     const buffer = await QRCode.default.toBuffer(data, qrOptions);
     return buffer;
   } catch (error) {
-    console.error('QR Buffer generation error:', error);
-    throw new Error('QR code buffer generation failed');
+    // Return null instead of throwing - QR code still works without image
+    console.warn('QR Buffer generation failed (optional):', error.message);
+    return null;
   }
 };
+<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
+run_terminal_cmd
 
 /**
  * Generate QR code for reservation

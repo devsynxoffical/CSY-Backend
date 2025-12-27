@@ -73,7 +73,8 @@ class QRService {
       try {
         qrDataURL = await generateQRDataURL(JSON.stringify(qrData));
       } catch (error) {
-        logger.warn('QR image generation failed', { error: error.message });
+        // QR image generation is optional - QR code still works without image
+        logger.warn('QR image generation failed (optional)', { error: error.message });
       }
 
       logger.info('QR code generated', {
