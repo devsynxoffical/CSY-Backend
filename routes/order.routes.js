@@ -136,6 +136,51 @@ router.post('/', generalLimiter, validateOrderCreation, handleValidationErrors, 
 
 /**
  * @swagger
+ * /api/orders/user:
+ *   get:
+ *     summary: Get user's orders
+ *     tags: [Order Management]
+ *     description: Retrieve paginated list of user's orders
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 10
+ *         description: Number of orders per page
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [pending, accepted, preparing, waiting_driver, in_delivery, completed, cancelled]
+ *         description: Filter by order status
+ *       - in: query
+ *         name: order_type
+ *         schema:
+ *           type: string
+ *           enum: [delivery, pickup]
+ *         description: Filter by order type
+ *     responses:
+ *       200:
+ *         description: Orders retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/user', generalLimiter, orderController.getUserOrders);
+
+/**
+ * @swagger
  * /api/orders/{id}:
  *   get:
  *     summary: Get order details
