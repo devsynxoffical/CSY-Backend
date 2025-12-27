@@ -86,8 +86,6 @@ const generateQRBuffer = async (data, options = {}) => {
     return null;
   }
 };
-<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
-run_terminal_cmd
 
 /**
  * Generate QR code for reservation
