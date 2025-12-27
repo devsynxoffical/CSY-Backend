@@ -924,14 +924,58 @@ router.get('/:id',
  *       200:
  *         description: Products retrieved
  */
+// All authenticated routes are defined below with individual authenticateBusiness middleware
+
+/**
+ * @swagger
+ * /api/business/products:
+ *   get:
+ *     summary: Get business products
+ *     tags: [Business Management]
+ *     description: Retrieve all products for the authenticated business
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *         description: Items per page
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *         description: Filter by category
+ *       - in: query
+ *         name: available
+ *         schema:
+ *           type: boolean
+ *         description: Filter by availability
+ *     responses:
+ *       200:
+ *         description: Products retrieved successfully
+ */
+router.get('/products',
+  generalLimiter,
+  authenticateBusiness,
+  businessController.getProducts
+);
+
 router.get('/:id/products',
   generalLimiter,
   validateUUID,
   businessController.getBusinessProducts
 );
-
-
-// All authenticated routes are defined below with individual authenticateBusiness middleware
 
 /**
  * @swagger
@@ -1710,11 +1754,11 @@ router.delete('/appointments/:id',
  *                   type: object
  *                   description: Created product data
  */
-router.post('/products',
-  generalLimiter,
-  authenticateBusiness,
-  businessController.addProduct
-);
+/**
+ * @swagger
+ * /api/business/products:
+ *   post:
+ *     summary: Add product
 
 /**
  * @swagger
