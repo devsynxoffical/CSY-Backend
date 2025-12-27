@@ -971,6 +971,79 @@ router.get('/products',
   businessController.getProducts
 );
 
+/**
+ * @swagger
+ * /api/business/products:
+ *   post:
+ *     summary: Add product
+ *     tags: [Business Management]
+ *     description: Add a new product to the business menu
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - price
+ *             properties:
+ *               category:
+ *                 type: string
+ *                 description: Product category
+ *                 example: "Burgers"
+ *               name:
+ *                 type: string
+ *                 minLength: 2
+ *                 maxLength: 100
+ *                 description: Product name
+ *                 example: "Cheese Burger"
+ *               description:
+ *                 type: string
+ *                 maxLength: 500
+ *                 description: Product description
+ *                 example: "Delicious cheese burger"
+ *               ingredients:
+ *                 type: string
+ *                 maxLength: 1000
+ *                 description: Product ingredients
+ *                 example: "Beef, Cheese, Bun"
+ *               image:
+ *                 type: string
+ *                 format: uri
+ *                 description: Product image URL
+ *                 example: "https://example.com/burger.jpg"
+ *               price:
+ *                 type: number
+ *                 minimum: 0
+ *                 description: Product price in piastres
+ *                 example: 15000
+ *     responses:
+ *       201:
+ *         description: Product added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Product added successfully"
+ *                 data:
+ *                   type: object
+ *                   description: Created product data
+ */
+router.post('/products',
+  generalLimiter,
+  authenticateBusiness,
+  businessController.addProduct
+);
+
 router.get('/:id/products',
   generalLimiter,
   validateUUID,
@@ -1754,12 +1827,6 @@ router.delete('/appointments/:id',
  *                   type: object
  *                   description: Created product data
  */
-/**
- * @swagger
- * /api/business/products:
- *   post:
- *     summary: Add product
-
 /**
  * @swagger
  * /api/business/products/{id}:
