@@ -549,7 +549,21 @@ class QRService {
         };
       }
 
-      // Verify driver is assigned to this order
+      // Check if scanner is a driver
+      const driver = await prisma.driver.findUnique({
+        where: { id: scannerUserId }
+      });
+
+      if (!driver) {
+        return {
+          success: false,
+          message: 'Only drivers can scan pickup QR codes',
+          error: 'UNAUTHORIZED',
+          statusCode: 403
+        };
+      }
+
+      // Verify driver is assigned to this order (if order already has a driver)
       if (order.driver_id && order.driver_id !== scannerUserId) {
         return {
           success: false,
@@ -559,14 +573,20 @@ class QRService {
         };
       }
 
-      // Update order status
+      // Update order status - only set driver_id if order doesn't have one yet
       if (order.status === 'waiting_driver' || order.status === 'accepted') {
+        const updateData = {
+          status: 'in_delivery'
+        };
+        
+        // Only set driver_id if not already set
+        if (!order.driver_id) {
+          updateData.driver_id = scannerUserId;
+        }
+
         await prisma.order.update({
           where: { id: order.id },
-          data: { 
-            status: 'in_delivery',
-            driver_id: scannerUserId
-          }
+          data: updateData
         });
       }
 
