@@ -470,7 +470,10 @@ class OrderController {
       const { id } = req.params;
       const userId = req.user.id;
 
-      const order = await Order.findOne({ id });
+      // Find order using Prisma
+      const order = await prisma.order.findUnique({
+        where: { id }
+      });
 
       if (!order) {
         return res.status(404).json({
@@ -498,14 +501,14 @@ class OrderController {
         });
       }
 
-      // Update order status
-      await Order.findOneAndUpdate(
-        { id },
-        {
+      // Update order status using Prisma
+      await prisma.order.update({
+        where: { id },
+        data: {
           status: 'cancelled',
           updated_at: new Date()
         }
-      );
+      });
 
       // Process refund if payment was made
       if (order.payment_status === 'paid') {
@@ -843,9 +846,11 @@ class OrderController {
             id: true,
             business_name: true,
             address: true,
-            phone: true,
+            owner_email: true, // Use owner_email instead of phone
             // logo_url is not in schema, checking photos
-            photos: true
+            photos: true,
+            city: true,
+            governorate: true
           }
         });
       }

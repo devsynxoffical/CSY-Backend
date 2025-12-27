@@ -335,6 +335,37 @@ router.get('/user', generalLimiter, orderController.getUserOrders);
 
 /**
  * @swagger
+ * /api/orders/{id}:
+ *   delete:
+ *     summary: Cancel an order
+ *     tags: [Order Management]
+ *     description: Cancel an order (only for pending/accepted orders)
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Order ID
+ *     responses:
+ *       200:
+ *         description: Order cancelled successfully
+ *       400:
+ *         description: Order cannot be cancelled
+ *       404:
+ *         description: Order not found
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Access denied
+ */
+router.delete('/:id', strictLimiter, ...validateUUID, orderController.cancelOrder);
+
+/**
+ * @swagger
  * /api/orders/cart:
  *   post:
  *     summary: Calculate cart total
