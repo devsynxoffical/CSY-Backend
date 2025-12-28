@@ -9,6 +9,7 @@ const {
   validateUserUpdate,
   validateDriverRegistration,
   validateDriverLogin,
+  validateUUID,
   handleValidationErrors
 } = require('../middlewares');
 
@@ -726,6 +727,7 @@ router.get('/orders',
  */
 router.post('/orders/:id/accept',
   generalLimiter,
+  validateUUID,
   driverController.acceptOrder
 );
 
@@ -774,6 +776,7 @@ router.post('/orders/:id/accept',
  */
 router.post('/orders/:id/deliver',
   generalLimiter,
+  validateUUID,
   driverController.deliverOrder
 );
 
