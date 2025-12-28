@@ -204,9 +204,17 @@ class CashierController {
         if (endDate) where.created_at.lte = new Date(endDate);
       }
 
+      // Filter orders that have items from this business
       const [orders, total] = await Promise.all([
         prisma.order.findMany({
-          where,
+          where: {
+            ...where,
+            order_items: {
+              some: {
+                business_id: cashier.business_id
+              }
+            }
+          },
           include: {
             user: { select: { id: true, full_name: true, phone: true } },
             order_items: {
@@ -229,7 +237,16 @@ class CashierController {
           skip: (parseInt(page) - 1) * parseInt(limit),
           take: parseInt(limit)
         }),
-        prisma.order.count({ where })
+        prisma.order.count({
+          where: {
+            ...where,
+            order_items: {
+              some: {
+                business_id: cashier.business_id
+              }
+            }
+          }
+        })
       ]);
 
       res.json({
@@ -572,15 +589,20 @@ class CashierController {
         });
       }
 
-      // Find order
+      // Find order and verify it belongs to cashier's business
       const order = await prisma.order.findUnique({
-        where: {
-          id: orderId,
-          business_id: cashier.business_id
+        where: { id: orderId },
+        include: {
+          order_items: {
+            where: {
+              business_id: cashier.business_id
+            },
+            take: 1
+          }
         }
       });
 
-      if (!order) {
+      if (!order || order.order_items.length === 0) {
         return res.status(404).json({
           success: false,
           message: 'Order not found',
@@ -678,10 +700,14 @@ class CashierController {
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
-      // Get orders for the day
+      // Get orders for the day that have items from this business
       const orders = await prisma.order.findMany({
         where: {
-          business_id: cashier.business_id,
+          order_items: {
+            some: {
+              business_id: cashier.business_id
+            }
+          },
           created_at: {
             gte: startOfDay,
             lte: endOfDay
@@ -773,24 +799,36 @@ class CashierController {
       const end = endDate ? new Date(endDate) : new Date();
       const start = startDate ? new Date(startDate) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-      // Get statistics using aggregation
+      // Get statistics using aggregation - filter through order_items
       const [ordersProcessed, paymentsProcessed, revenueAgg] = await Promise.all([
         prisma.order.count({
           where: {
-            business_id: cashier.business_id,
+            order_items: {
+              some: {
+                business_id: cashier.business_id
+              }
+            },
             updated_at: { gte: start, lte: end }
           }
         }),
         prisma.order.count({
           where: {
-            business_id: cashier.business_id,
+            order_items: {
+              some: {
+                business_id: cashier.business_id
+              }
+            },
             payment_status: 'paid',
             updated_at: { gte: start, lte: end }
           }
         }),
         prisma.order.aggregate({
           where: {
-            business_id: cashier.business_id,
+            order_items: {
+              some: {
+                business_id: cashier.business_id
+              }
+            },
             payment_status: 'paid',
             updated_at: { gte: start, lte: end }
           },
@@ -855,7 +893,11 @@ class CashierController {
       const [ordersProcessed, qrCodesScanned, paymentsProcessed] = await Promise.all([
         prisma.order.findMany({
           where: {
-            business_id: cashier.business_id,
+            order_items: {
+              some: {
+                business_id: cashier.business_id
+              }
+            },
             updated_at: { gte: start, lte: end }
           },
           orderBy: { updated_at: 'desc' },
@@ -863,22 +905,6 @@ class CashierController {
         }),
         prisma.qRCode.findMany({
           where: {
-            // Assuming QR codes are linked to business via reservation or order, or we need a way to link them.
-            // For now, let's fetch QR codes used for this business's orders/reservations if possible, 
-            // or if QR codes have a business_id field (they don't seem to in the schema directly, but linked via reference).
-            // This part is tricky without direct business link on QRCode.
-            // Let's assume we want QR codes where the reference (order/reservation) belongs to this business.
-            // This is complex in Prisma without a direct link.
-            // Simplified: Fetch QR codes where we can infer business ownership.
-            // Actually, let's just count orders and payments for now as primary operations.
-            // If we need QR logs, we might need a separate log table or more complex query.
-            // For this migration, let's stick to what we can easily query.
-            // Wait, the original code was likely querying QRCode directly.
-            // If QRCode doesn't have business_id, the original Mongoose code `QRCode.find({ business_id: ... })` would have failed if the field didn't exist.
-            // Let's check schema. QRCode has `business_id`?
-            // Checking schema... QRCode model in schema.prisma:
-            // model QRCode { ... business_id String? ... }
-            // Yes, it has business_id.
             business_id: cashier.business_id,
             used_at: { gte: start, lte: end },
             is_used: true
@@ -888,7 +914,11 @@ class CashierController {
         }),
         prisma.order.findMany({
           where: {
-            business_id: cashier.business_id,
+            order_items: {
+              some: {
+                business_id: cashier.business_id
+              }
+            },
             payment_status: 'paid',
             updated_at: { gte: start, lte: end }
           },
@@ -1041,7 +1071,11 @@ class CashierController {
       const [ordersProcessed, qrCodesScanned, paymentsProcessed] = await Promise.all([
         prisma.order.findMany({
           where: {
-            business_id: cashier.business_id,
+            order_items: {
+              some: {
+                business_id: cashier.business_id
+              }
+            },
             updated_at: { gte: start, lte: end }
           },
           orderBy: { updated_at: 'desc' },
@@ -1058,7 +1092,11 @@ class CashierController {
         }),
         prisma.order.findMany({
           where: {
-            business_id: cashier.business_id,
+            order_items: {
+              some: {
+                business_id: cashier.business_id
+              }
+            },
             payment_status: 'paid',
             updated_at: { gte: start, lte: end }
           },

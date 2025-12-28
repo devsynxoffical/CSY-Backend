@@ -1,0 +1,1450 @@
+{
+	"info": {
+		"_postman_id": "driver-cashier-api-001",
+		"name": "Driver & Cashier API - Complete Collection",
+		"description": "Complete Postman collection for Driver and Cashier modules. Includes all endpoints with correct parameters, test scripts, and auto-save functionality.\n\n**SETUP INSTRUCTIONS:**\n1. Set `base_url` environment variable (default: Railway production URL)\n2. **For Driver Module:** Run 'Driver Register' or 'Driver Login' to get `driverToken`\n3. **For Cashier Module:** Run 'Cashier Login' to get `cashierToken`\n4. All endpoints include test scripts to auto-save IDs and tokens\n5. Helper endpoints included to fetch orders/products for testing\n\n**IMPORTANT:**\n- All authenticated endpoints require Bearer token\n- Driver endpoints use `driverToken`\n- Cashier endpoints use `cashierToken`\n- IDs are auto-saved from responses for easy testing",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Driver Module",
+			"item": [
+				{
+					"name": "1. Authentication",
+					"item": [
+						{
+							"name": "Driver Register",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 201) {",
+											"    const response = pm.response.json();",
+											"    if (response.success && response.data && response.data.token) {",
+											"        pm.environment.set(\"driverToken\", response.data.token);",
+											"        pm.environment.set(\"driverId\", response.data.driver?.id || \"\");",
+											"        console.log(\"✅ Driver token saved:\", response.data.token.substring(0, 20) + \"...\");",
+											"        console.log(\"✅ Driver ID:\", response.data.driver?.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"full_name\": \"Ahmed Hassan\",\n    \"email\": \"ahmed.driver@example.com\",\n    \"phone\": \"+201012345678\",\n    \"vehicle_type\": \"motorcycle\",\n    \"password\": \"password123\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/driver/register",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"register"
+									]
+								},
+								"description": "Register a new driver account. Auto-saves `driverToken` and `driverId` on success."
+							},
+							"response": []
+						},
+						{
+							"name": "Driver Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.success && response.data && response.data.token) {",
+											"        pm.environment.set(\"driverToken\", response.data.token);",
+											"        pm.environment.set(\"driverId\", response.data.driver?.id || \"\");",
+											"        console.log(\"✅ Driver token saved:\", response.data.token.substring(0, 20) + \"...\");",
+											"        console.log(\"✅ Driver ID:\", response.data.driver?.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"ahmed.driver@example.com\",\n    \"password\": \"password123\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/driver/login",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"login"
+									]
+								},
+								"description": "Login as driver. Auto-saves `driverToken` and `driverId`. **REQUIRED** for all driver endpoints."
+							},
+							"response": []
+						}
+					],
+					"description": "Driver authentication endpoints"
+				},
+				{
+					"name": "2. Profile Management",
+					"item": [
+						{
+							"name": "Get Driver Profile",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.success && response.data) {",
+											"        console.log(\"✅ Driver Profile:\", response.data.full_name);",
+											"        console.log(\"   Vehicle:\", response.data.vehicle_type);",
+											"        console.log(\"   Available:\", response.data.is_available);",
+											"        console.log(\"   Earnings:\", response.data.earnings_cash + response.data.earnings_online);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/driver/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"profile"
+									]
+								},
+								"description": "Get driver profile with stats, active orders, and ratings."
+							},
+							"response": []
+						},
+						{
+							"name": "Update Driver Profile",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"full_name\": \"Ahmed Hassan Ali\",\n    \"phone\": \"+201012345679\",\n    \"vehicle_type\": \"car\",\n    \"profile_picture\": \"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/driver/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"profile"
+									]
+								},
+								"description": "Update driver profile information. All fields are optional."
+							},
+							"response": []
+						},
+						{
+							"name": "Update Driver Location",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"latitude\": 30.0444,\n    \"longitude\": 31.2357\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/driver/location",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"location"
+									]
+								},
+								"description": "Update driver's current GPS location. Required for order matching."
+							},
+							"response": []
+						},
+						{
+							"name": "Update Driver Availability",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"is_available\": true\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/driver/availability",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"availability"
+									]
+								},
+								"description": "Set driver online/offline status. Must be available to receive orders."
+							},
+							"response": []
+						}
+					],
+					"description": "Driver profile management endpoints"
+				},
+				{
+					"name": "3. Orders Management",
+					"item": [
+						{
+							"name": "Get Incoming Orders",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.success && response.data && response.data.orders && response.data.orders.length > 0) {",
+											"        const firstOrder = response.data.orders[0];",
+											"        pm.environment.set(\"orderId\", firstOrder.id);",
+											"        console.log(\"✅ Auto-saved first order ID:\", firstOrder.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/driver/orders/incoming?page=1&limit=10&latitude=30.0444&longitude=31.2357",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"orders",
+										"incoming"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "10"
+										},
+										{
+											"key": "latitude",
+											"value": "30.0444",
+											"description": "Driver's current latitude"
+										},
+										{
+											"key": "longitude",
+											"value": "31.2357",
+											"description": "Driver's current longitude"
+										}
+									]
+								},
+								"description": "Get orders available for pickup near the driver. Auto-saves first `orderId`."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Accepted Orders",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/driver/orders/accepted?page=1&limit=20",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"orders",
+										"accepted"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										}
+									]
+								},
+								"description": "Get orders accepted by driver (preparing status)."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Orders In Delivery",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/driver/orders/in-delivery?page=1&limit=20",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"orders",
+										"in-delivery"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										}
+									]
+								},
+								"description": "Get orders currently being delivered by driver."
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Driver Orders",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/driver/orders?page=1&limit=20&status=completed",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"orders"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "status",
+											"value": "completed",
+											"description": "Optional: Filter by status (pending, accepted, preparing, waiting_driver, in_delivery, completed, cancelled)",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Get all orders assigned to driver (history). Optional status filter."
+							},
+							"response": []
+						},
+						{
+							"name": "Accept Order",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/driver/orders/{{orderId}}/accept",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"orders",
+										"{{orderId}}",
+										"accept"
+									]
+								},
+								"description": "Accept an order assignment for delivery. **REQUIRES:** Valid `orderId` (set via Get Incoming Orders)."
+							},
+							"response": []
+						},
+						{
+							"name": "Mark Order as Delivered",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/driver/orders/{{orderId}}/deliver",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"orders",
+										"{{orderId}}",
+										"deliver"
+									]
+								},
+								"description": "Mark an order as successfully delivered. **REQUIRES:** Valid `orderId`."
+							},
+							"response": []
+						}
+					],
+					"description": "Driver order management endpoints"
+				},
+				{
+					"name": "4. Earnings & Statistics",
+					"item": [
+						{
+							"name": "Get Driver Earnings",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/driver/earnings?startDate=2024-01-01&endDate=2024-01-31",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"earnings"
+									],
+									"query": [
+										{
+											"key": "startDate",
+											"value": "2024-01-01",
+											"description": "Start date (YYYY-MM-DD)",
+											"disabled": true
+										},
+										{
+											"key": "endDate",
+											"value": "2024-01-31",
+											"description": "End date (YYYY-MM-DD)",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Get driver earnings and statistics. Defaults to current month if dates not provided."
+							},
+							"response": []
+						}
+					],
+					"description": "Driver earnings and statistics endpoints"
+				},
+				{
+					"name": "5. QR Code Operations",
+					"item": [
+						{
+							"name": "Scan QR Code (Driver Pickup)",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{driverToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"qr_token\": \"{{driverPickupQrToken}}\",\n    \"action\": \"confirm_pickup\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/driver/qr/scan",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"driver",
+										"qr",
+										"scan"
+									]
+								},
+								"description": "Scan driver pickup QR code to confirm order pickup. **REQUIRES:** Valid `driverPickupQrToken` (generate via QR API)."
+							},
+							"response": []
+						}
+					],
+					"description": "Driver QR code scanning endpoints"
+				}
+			],
+			"description": "Complete Driver module endpoints"
+		},
+		{
+			"name": "Cashier Module",
+			"item": [
+				{
+					"name": "1. Authentication",
+					"item": [
+						{
+							"name": "Cashier Login",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.success && response.data && response.data.token) {",
+											"        pm.environment.set(\"cashierToken\", response.data.token);",
+											"        pm.environment.set(\"cashierId\", response.data.cashier?.id || \"\");",
+											"        pm.environment.set(\"businessId\", response.data.cashier?.business_id || \"\");",
+											"        console.log(\"✅ Cashier token saved:\", response.data.token.substring(0, 20) + \"...\");",
+											"        console.log(\"✅ Cashier ID:\", response.data.cashier?.id);",
+											"        console.log(\"✅ Business ID:\", response.data.cashier?.business_id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"email\": \"sara.cashier@example.com\",\n    \"password\": \"password123\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/cashier/login",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"cashier",
+										"login"
+									]
+								},
+								"description": "Login as cashier. Auto-saves `cashierToken`, `cashierId`, and `businessId`. **REQUIRED** for all cashier endpoints."
+							},
+							"response": []
+						}
+					],
+					"description": "Cashier authentication endpoints"
+				},
+				{
+					"name": "2. Profile Management",
+					"item": [
+						{
+							"name": "Get Cashier Profile",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{cashierToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/cashier/profile",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"cashier",
+										"profile"
+									]
+								},
+								"description": "Get cashier profile with business information."
+							},
+							"response": []
+						}
+					],
+					"description": "Cashier profile management endpoints"
+				},
+				{
+					"name": "3. Orders Management",
+					"item": [
+						{
+							"name": "Get Business Orders",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.success && response.data && response.data.orders && response.data.orders.length > 0) {",
+											"        const firstOrder = response.data.orders[0];",
+											"        pm.environment.set(\"orderId\", firstOrder.id);",
+											"        console.log(\"✅ Auto-saved first order ID:\", firstOrder.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{cashierToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/cashier/orders?page=1&limit=20&status=pending",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"cashier",
+										"orders"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "status",
+											"value": "pending",
+											"description": "Optional: Filter by status (pending, accepted, preparing, ready, completed, cancelled)",
+											"disabled": true
+										},
+										{
+											"key": "startDate",
+											"value": "",
+											"description": "Optional: Start date (YYYY-MM-DD)",
+											"disabled": true
+										},
+										{
+											"key": "endDate",
+											"value": "",
+											"description": "Optional: End date (YYYY-MM-DD)",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Get orders for cashier's business. Auto-saves first `orderId`."
+							},
+							"response": []
+						},
+						{
+							"name": "Update Order Status",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{cashierToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"status\": \"preparing\",\n    \"notes\": \"Order is being prepared\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/cashier/orders/{{orderId}}/status",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"cashier",
+										"orders",
+										"{{orderId}}",
+										"status"
+									]
+								},
+								"description": "Update order status (accept, prepare, ready, etc.). **REQUIRES:** Valid `orderId`."
+							},
+							"response": []
+						},
+						{
+							"name": "Process Order Payment",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{cashierToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"payment_method\": \"cash\",\n    \"payment_amount\": 75000\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/cashier/orders/{{orderId}}/payment",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"cashier",
+										"orders",
+										"{{orderId}}",
+										"payment"
+									]
+								},
+								"description": "Process payment for an order. **REQUIRES:** Valid `orderId`. Payment methods: cash, online, wallet."
+							},
+							"response": []
+						}
+					],
+					"description": "Cashier order management endpoints"
+				},
+				{
+					"name": "4. Products Management",
+					"item": [
+						{
+							"name": "Get Business Products",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"if (pm.response.code === 200) {",
+											"    const response = pm.response.json();",
+											"    if (response.success && response.data && response.data.products && response.data.products.length > 0) {",
+											"        const firstProduct = response.data.products[0];",
+											"        pm.environment.set(\"productId\", firstProduct.id);",
+											"        console.log(\"✅ Auto-saved first product ID:\", firstProduct.id);",
+											"    }",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{cashierToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/cashier/products?page=1&limit=20",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"cashier",
+										"products"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "category",
+											"value": "",
+											"description": "Optional: Filter by category",
+											"disabled": true
+										},
+										{
+											"key": "available",
+											"value": "true",
+											"description": "Optional: Filter by availability (true/false)",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Get products/menu items for cashier's business. Auto-saves first `productId`."
+							},
+							"response": []
+						},
+						{
+							"name": "Update Product Availability",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{cashierToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"is_available\": true\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/cashier/products/{{productId}}/availability",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"cashier",
+										"products",
+										"{{productId}}",
+										"availability"
+									]
+								},
+								"description": "Enable or disable a product for ordering. **REQUIRES:** Valid `productId`."
+							},
+							"response": []
+						}
+					],
+					"description": "Cashier product management endpoints"
+				},
+				{
+					"name": "5. Reports & Statistics",
+					"item": [
+						{
+							"name": "Get Daily Report",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{cashierToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/cashier/reports/daily?date=2024-01-15",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"cashier",
+										"reports",
+										"daily"
+									],
+									"query": [
+										{
+											"key": "date",
+											"value": "2024-01-15",
+											"description": "Report date (YYYY-MM-DD, defaults to today)",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Get daily sales and operations report. Defaults to today if date not provided."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Cashier Statistics",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{cashierToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/cashier/statistics?startDate=2024-01-01&endDate=2024-01-31",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"cashier",
+										"statistics"
+									],
+									"query": [
+										{
+											"key": "startDate",
+											"value": "2024-01-01",
+											"description": "Start date (YYYY-MM-DD, defaults to 7 days ago)",
+											"disabled": true
+										},
+										{
+											"key": "endDate",
+											"value": "2024-01-31",
+											"description": "End date (YYYY-MM-DD, defaults to today)",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Get cashier performance statistics. Defaults to last 7 days if dates not provided."
+							},
+							"response": []
+						},
+						{
+							"name": "Get Operations History",
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{cashierToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/cashier/operations?page=1&limit=20",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"cashier",
+										"operations"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										},
+										{
+											"key": "startDate",
+											"value": "",
+											"description": "Optional: Start date (YYYY-MM-DD)",
+											"disabled": true
+										},
+										{
+											"key": "endDate",
+											"value": "",
+											"description": "Optional: End date (YYYY-MM-DD)",
+											"disabled": true
+										}
+									]
+								},
+								"description": "Get cashier operations history including orders, payments, and QR scans."
+							},
+							"response": []
+						}
+					],
+					"description": "Cashier reports and statistics endpoints"
+				},
+				{
+					"name": "6. QR Code Operations",
+					"item": [
+						{
+							"name": "Scan QR Code",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "bearer",
+									"bearer": [
+										{
+											"key": "token",
+											"value": "{{cashierToken}}",
+											"type": "string"
+										}
+									]
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"qr_token\": \"{{orderQrToken}}\",\n    \"action\": \"process\",\n    \"additional_data\": {\n        \"amount\": 5000\n    }\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/cashier/qr/scan",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"cashier",
+										"qr",
+										"scan"
+									]
+								},
+								"description": "Scan and process QR codes (order, payment, reservation, discount). **REQUIRES:** Valid QR token (generate via QR API)."
+							},
+							"response": []
+						}
+					],
+					"description": "Cashier QR code scanning endpoints"
+				}
+			],
+			"description": "Complete Cashier module endpoints"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://csy-backend-production.up.railway.app",
+			"type": "string"
+		},
+		{
+			"key": "driverToken",
+			"value": "",
+			"type": "string",
+			"description": "Driver authentication token - Set via Driver Login/Register"
+		},
+		{
+			"key": "cashierToken",
+			"value": "",
+			"type": "string",
+			"description": "Cashier authentication token - Set via Cashier Login"
+		},
+		{
+			"key": "driverId",
+			"value": "",
+			"type": "string",
+			"description": "Driver ID - Auto-saved from login/register"
+		},
+		{
+			"key": "cashierId",
+			"value": "",
+			"type": "string",
+			"description": "Cashier ID - Auto-saved from login"
+		},
+		{
+			"key": "businessId",
+			"value": "",
+			"type": "string",
+			"description": "Business ID - Auto-saved from cashier login"
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "string",
+			"description": "Order ID - Auto-saved from Get Orders endpoints"
+		},
+		{
+			"key": "productId",
+			"value": "",
+			"type": "string",
+			"description": "Product ID - Auto-saved from Get Products endpoint"
+		},
+		{
+			"key": "orderQrToken",
+			"value": "",
+			"type": "string",
+			"description": "Order QR token - Generate via QR API"
+		},
+		{
+			"key": "driverPickupQrToken",
+			"value": "",
+			"type": "string",
+			"description": "Driver Pickup QR token - Generate via QR API"
+		}
+	]
+}
+

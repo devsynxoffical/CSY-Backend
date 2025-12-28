@@ -333,22 +333,11 @@ class DriverController {
         });
       }
 
-      // Update driver
-      filteredUpdates.updated_at = new Date();
-
-      const updatedDriver = await Driver.findOneAndUpdate(
-        { id: driverId },
-        filteredUpdates,
-        { new: true }
-      );
-
-      if (!updatedDriver) {
-        return res.status(404).json({
-          success: false,
-          message: 'Driver not found',
-          error: 'Driver profile not found'
-        });
-      }
+      // Update driver using Prisma
+      const updatedDriver = await prisma.driver.update({
+        where: { id: driverId },
+        data: filteredUpdates
+      });
 
       const driverResponse = {
         id: updatedDriver.id,
@@ -418,15 +407,14 @@ class DriverController {
         });
       }
 
-      // Update location
-      await Driver.findOneAndUpdate(
-        { id: driverId },
-        {
+      // Update location using Prisma
+      await prisma.driver.update({
+        where: { id: driverId },
+        data: {
           current_latitude: latitude,
-          current_longitude: longitude,
-          updated_at: new Date()
+          current_longitude: longitude
         }
-      );
+      });
 
       logger.info('Driver location updated', { driverId, latitude, longitude });
 
@@ -469,14 +457,13 @@ class DriverController {
         });
       }
 
-      // Update availability
-      await Driver.findOneAndUpdate(
-        { id: driverId },
-        {
-          is_available: is_available,
-          updated_at: new Date()
+      // Update availability using Prisma
+      await prisma.driver.update({
+        where: { id: driverId },
+        data: {
+          is_available: is_available
         }
-      );
+      });
 
       logger.info('Driver availability updated', { driverId, is_available });
 
@@ -885,8 +872,13 @@ class DriverController {
             user: {
               select: { id: true, full_name: true, phone: true }
             },
-            business: {
-              select: { business_name: true, address: true, latitude: true, longitude: true }
+            order_items: {
+              take: 1,
+              include: {
+                business: {
+                  select: { id: true, business_name: true, address: true, latitude: true, longitude: true }
+                }
+              }
             }
           },
           orderBy: { created_at: 'desc' },
@@ -896,11 +888,21 @@ class DriverController {
         prisma.order.count({ where })
       ]);
 
+      // Transform orders to include business info from first order item
+      const transformedOrders = orders.map(order => {
+        const business = order.order_items?.[0]?.business || null;
+        const { order_items, ...orderData } = order;
+        return {
+          ...orderData,
+          business
+        };
+      });
+
       res.json({
         success: true,
         message: 'Accepted orders retrieved successfully',
         data: {
-          orders,
+          orders: transformedOrders,
           pagination: {
             page: parseInt(page),
             limit: parseInt(limit),

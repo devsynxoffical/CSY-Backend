@@ -1,4 +1,4 @@
-// Load environment variables
+// Load environment variables FIRST
 require('dotenv').config();
 
 const { PrismaClient } = require('@prisma/client');
@@ -12,7 +12,15 @@ if (!process.env.DATABASE_URL) {
     console.log('✅ Using DATABASE_URL from .env file');
 }
 
-const prisma = new PrismaClient();
+// Initialize PrismaClient with explicit DATABASE_URL
+const prisma = new PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.DATABASE_URL
+        }
+    },
+    log: ['error', 'warn']
+});
 
 /**
  * Seed Drivers and Cashiers with comprehensive test data
@@ -22,10 +30,34 @@ async function seedDriversAndCashiers() {
     console.log('🚀 Seeding Drivers and Cashiers with comprehensive data...\n');
 
     try {
-        // Test database connection
+        // Test database connection with timeout
         console.log('🔌 Testing database connection...');
-        await prisma.$connect();
-        console.log('✅ Database connection successful!\n');
+        console.log(`📡 Database URL: ${process.env.DATABASE_URL ? process.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@') : 'Not set'}`);
+        
+        try {
+            // Set connection timeout
+            await Promise.race([
+                prisma.$connect(),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('Connection timeout after 10 seconds')), 10000)
+                )
+            ]);
+            console.log('✅ Database connection successful!\n');
+        } catch (connectionError) {
+            if (connectionError.message.includes('timeout') || connectionError.code === 'P1001') {
+                console.error('\n❌ Database Connection Failed!');
+                console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                console.error('⚠️  Railway databases are NOT accessible from local machines');
+                console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+                console.error('💡 Solutions:');
+                console.error('   1. Run on Railway using Railway CLI:');
+                console.error('      railway run npm run db:seed:drivers-cashiers');
+                console.error('\n   2. Or use Railway Dashboard Terminal');
+                console.error('\n   3. Or set up a local PostgreSQL database');
+                console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+            }
+            throw connectionError;
+        }
 
         const password = 'password123';
         const hashedPassword = await bcrypt.hash(password, 12);
@@ -385,10 +417,24 @@ async function seedDriversAndCashiers() {
 
     } catch (error) {
         console.error('\n❌ Failed to seed drivers and cashiers:', error.message);
-        console.error(error.stack);
+        
+        if (error.code === 'P1001' || error.message.includes('Can\'t reach database server')) {
+            console.error('\n💡 This is a database connection issue.');
+            console.error('   Railway databases cannot be accessed from local machines.');
+            console.error('   Please use Railway CLI to run this script:\n');
+            console.error('   railway run npm run db:seed:drivers-cashiers\n');
+        } else {
+            console.error('\n📋 Error Details:');
+            console.error(error.stack);
+        }
+        
         throw error;
     } finally {
-        await prisma.$disconnect();
+        try {
+            await prisma.$disconnect();
+        } catch (disconnectError) {
+            // Ignore disconnect errors
+        }
     }
 }
 
