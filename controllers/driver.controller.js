@@ -948,8 +948,13 @@ class DriverController {
             user: {
               select: { id: true, full_name: true, phone: true }
             },
-            business: {
-              select: { business_name: true, address: true, latitude: true, longitude: true }
+            order_items: {
+              take: 1,
+              include: {
+                business: {
+                  select: { id: true, business_name: true, address: true, latitude: true, longitude: true }
+                }
+              }
             }
           },
           orderBy: { created_at: 'desc' },
@@ -959,11 +964,21 @@ class DriverController {
         prisma.order.count({ where })
       ]);
 
+      // Transform orders to include business info from first order item
+      const transformedOrders = orders.map(order => {
+        const business = order.order_items?.[0]?.business || null;
+        const { order_items, ...orderData } = order;
+        return {
+          ...orderData,
+          business
+        };
+      });
+
       res.json({
         success: true,
         message: 'Orders in delivery retrieved successfully',
         data: {
-          orders,
+          orders: transformedOrders,
           pagination: {
             page: parseInt(page),
             limit: parseInt(limit),
@@ -1012,8 +1027,13 @@ class DriverController {
             user: {
               select: { full_name: true }
             },
-            business: {
-              select: { business_name: true }
+            order_items: {
+              take: 1,
+              include: {
+                business: {
+                  select: { business_name: true }
+                }
+              }
             }
           },
           orderBy: { updated_at: 'desc' },
@@ -1029,7 +1049,7 @@ class DriverController {
         type: 'delivery',
         operation: `${order.status} order #${order.order_number}`,
         customer: order.user?.full_name || 'Unknown',
-        business: order.business?.business_name || 'Unknown',
+        business: order.order_items?.[0]?.business?.business_name || 'Unknown',
         timestamp: order.updated_at || order.created_at,
         reference_id: order.id
       }));
