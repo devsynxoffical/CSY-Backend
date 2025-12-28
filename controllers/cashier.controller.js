@@ -948,13 +948,13 @@ class CashierController {
   async scanQRCode(req, res) {
     try {
       const cashierId = req.user.id;
-      const { qr_token } = req.body;
+      const { qr_token, action, additional_data } = req.body;
 
       if (!qr_token) {
         return res.status(400).json({
           success: false,
           message: 'QR token is required',
-          error: 'Please provide a valid QR token'
+          error: 'MISSING_QR_TOKEN'
         });
       }
 
@@ -968,123 +968,45 @@ class CashierController {
         });
       }
 
-      // Find QR code
-      const qrCode = await prisma.qRCode.findFirst({
-        where: {
-          qr_token,
-          is_used: false,
-          expires_at: { gt: new Date() }
+      // Use QR service to scan QR code
+      const { qrService } = require('../services');
+      const scanResult = await qrService.scanQR(
+        qr_token,
+        cashierId,
+        action || 'process',
+        {
+          ...additional_data,
+          scannerType: 'cashier',
+          business_id: cashier.business_id,
+          cashier_id: cashierId
         }
-      });
+      );
 
-      if (!qrCode) {
-        return res.status(404).json({
+      if (!scanResult.success) {
+        return res.status(scanResult.statusCode || 400).json({
           success: false,
-          message: 'Invalid or expired QR code',
-          error: 'QR code not found or already used'
+          message: scanResult.message,
+          error: scanResult.error,
+          data: scanResult.data
         });
       }
 
-      // Process based on QR type
-      let result = null;
-      let action = '';
-
-      switch (qrCode.qr_type) {
-        case 'discount':
-          // Apply discount to business
-          result = { discount_applied: true, qr_code: qrCode };
-          action = 'discount_applied';
-          break;
-
-        case 'payment':
-          // Process payment
-          result = { payment_processed: true, qr_code: qrCode };
-          action = 'payment_processed';
-          break;
-
-        case 'reservation':
-          // Get reservation details
-          const reservation = await prisma.reservation.findUnique({
-            where: {
-              id: qrCode.reference_id,
-              business_id: cashier.business_id
-            }
-          });
-          if (!reservation) {
-            return res.status(404).json({
-              success: false,
-              message: 'Reservation not found',
-              error: 'Reservation associated with QR code not found'
-            });
-          }
-          result = { reservation, qr_code: qrCode };
-          action = 'reservation_scanned';
-          break;
-
-        case 'order':
-          // Get order details
-          const order = await prisma.order.findUnique({
-            where: {
-              id: qrCode.reference_id,
-              business_id: cashier.business_id
-            }
-          });
-          if (!order) {
-            return res.status(404).json({
-              success: false,
-              message: 'Order not found',
-              error: 'Order associated with QR code not found'
-            });
-          }
-          result = { order, qr_code: qrCode };
-          action = 'order_scanned';
-          break;
-
-        case 'driver_pickup':
-          // Driver pickup confirmation
-          result = { driver_pickup: true, qr_code: qrCode };
-          action = 'driver_pickup_scanned';
-          break;
-
-        default:
-          return res.status(400).json({
-            success: false,
-            message: 'Unsupported QR code type',
-            error: `QR type '${qrCode.qr_type}' is not supported`
-          });
-      }
-
-      await prisma.qRCode.update({
-        where: { id: qrCode.id },
-        data: {
-          is_used: true,
-          used_at: new Date()
-        }
-      });
-
-      // Log the operation
-      logger.info('QR code scanned by cashier', {
-        cashierId,
-        qrToken: qr_token,
-        qrType: qrCode.qr_type,
-        action
-      });
-
       res.json({
         success: true,
-        message: 'QR code scanned successfully',
-        data: result
+        message: scanResult.message || 'QR code scanned successfully',
+        data: scanResult.data || scanResult
       });
+
     } catch (error) {
-      logger.error('QR code scan failed', {
+      logger.error('Cashier scan QR error', {
         cashierId: req.user?.id,
-        qrToken: req.body?.qr_token,
-        error: error.message
+        error: error.message,
+        stack: error.stack
       });
 
       res.status(500).json({
         success: false,
-        message: 'QR code scan failed',
+        message: 'Failed to scan QR code',
         error: error.message
       });
     }

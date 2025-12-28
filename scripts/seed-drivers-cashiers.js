@@ -1,8 +1,18 @@
 // Load environment variables
 require('dotenv').config();
 
-const { prisma } = require('../config/database');
+const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
+
+// Use DATABASE_URL from .env, or fallback to Railway connection string
+if (!process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = 'postgresql://postgres:rdGEkKzyfuDUqsBdvwhKzaDfHdZVOtwA@metro.proxy.rlwy.net:49988/railway';
+    console.log('⚠️  Using hardcoded DATABASE_URL (should be in .env file)');
+} else {
+    console.log('✅ Using DATABASE_URL from .env file');
+}
+
+const prisma = new PrismaClient();
 
 /**
  * Seed Drivers and Cashiers with comprehensive test data

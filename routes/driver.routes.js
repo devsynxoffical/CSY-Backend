@@ -849,4 +849,66 @@ router.get('/earnings',
   driverController.getEarnings
 );
 
+/**
+ * @swagger
+ * /api/driver/qr/scan:
+ *   post:
+ *     summary: Scan QR code
+ *     tags: [Driver Management]
+ *     description: Scan and process QR codes for driver pickup and delivery confirmation
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - qr_token
+ *             properties:
+ *               qr_token:
+ *                 type: string
+ *                 description: QR code token to scan
+ *                 example: "ORD-20251228-278249"
+ *               action:
+ *                 type: string
+ *                 enum: [confirm_pickup, process]
+ *                 description: Action to perform with the QR code
+ *                 example: "confirm_pickup"
+ *               additional_data:
+ *                 type: object
+ *                 description: Additional data for the scan
+ *     responses:
+ *       200:
+ *         description: QR code scanned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Order picked up successfully"
+ *                 data:
+ *                   type: object
+ *                   description: Scan result data
+ *       400:
+ *         description: Invalid QR token or processing failed
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Driver not assigned to this order
+ *       404:
+ *         description: QR code or order not found
+ */
+router.post('/qr/scan',
+  authenticateDriver,
+  generalLimiter,
+  driverController.scanQR
+);
+
 module.exports = router;

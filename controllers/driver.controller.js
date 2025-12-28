@@ -1312,6 +1312,75 @@ class DriverController {
       total: aggregate._count.rating || 0
     };
   }
+
+  /**
+   * Scan QR code (for driver pickup and delivery confirmation)
+   */
+  async scanQR(req, res) {
+    try {
+      const driverId = req.user.id;
+      const { qr_token, action, additional_data } = req.body;
+
+      if (!qr_token) {
+        return res.status(400).json({
+          success: false,
+          message: 'QR token is required',
+          error: 'MISSING_QR_TOKEN'
+        });
+      }
+
+      // Verify driver exists and is active
+      const driver = await prisma.driver.findUnique({ where: { id: driverId } });
+      if (!driver || !driver.is_active) {
+        return res.status(404).json({
+          success: false,
+          message: 'Driver not found or inactive',
+          error: 'DRIVER_NOT_FOUND'
+        });
+      }
+
+      // Use QR service to scan QR code
+      const { qrService } = require('../services');
+      const scanResult = await qrService.scanQR(
+        qr_token,
+        driverId,
+        action || 'confirm_pickup',
+        {
+          ...additional_data,
+          scannerType: 'driver',
+          driver_id: driverId
+        }
+      );
+
+      if (!scanResult.success) {
+        return res.status(scanResult.statusCode || 400).json({
+          success: false,
+          message: scanResult.message,
+          error: scanResult.error,
+          data: scanResult.data
+        });
+      }
+
+      res.json({
+        success: true,
+        message: scanResult.message || 'QR code scanned successfully',
+        data: scanResult.data || scanResult
+      });
+
+    } catch (error) {
+      logger.error('Driver scan QR error', {
+        driverId: req.user?.id,
+        error: error.message,
+        stack: error.stack
+      });
+
+      res.status(500).json({
+        success: false,
+        message: 'Failed to scan QR code',
+        error: error.message
+      });
+    }
+  }
 }
 
 module.exports = new DriverController();

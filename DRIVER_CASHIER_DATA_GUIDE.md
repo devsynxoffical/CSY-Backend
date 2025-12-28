@@ -17,11 +17,38 @@ npm run db:seed:drivers-cashiers
 ```
 
 This will:
-1. ✅ Connect to the database
+1. ✅ Connect to the database (uses DATABASE_URL from .env or Railway fallback)
 2. ✅ Get or create businesses for cashiers
 3. ✅ Create/update 8 drivers with comprehensive data
 4. ✅ Create/update 15 cashiers across businesses
 5. ✅ Display summary and test credentials
+
+### Running on Railway
+
+Since Railway databases are not accessible from local machines, you have 3 options:
+
+**Option 1: Railway CLI (Recommended)**
+```bash
+# Install Railway CLI if not installed
+npm i -g @railway/cli
+
+# Login to Railway
+railway login
+
+# Link to your project
+railway link
+
+# Run the seeding script
+railway run npm run db:seed:drivers-cashiers
+```
+
+**Option 2: Deploy Script as API Endpoint**
+Create an admin endpoint that triggers seeding (for production use).
+
+**Option 3: Use Railway Dashboard**
+1. Go to Railway Dashboard → Your Backend Service
+2. Open "Deployments" → "Deploy Logs"
+3. Use Railway's built-in terminal to run commands
 
 ---
 
