@@ -5,6 +5,7 @@ const router = express.Router();
 const qrController = require('../controllers/qr.controller');
 const {
   authenticate,
+  authenticateUserOrBusiness,
   validateQRGeneration,
   validateQRValidation,
   validateQRScan,
@@ -24,8 +25,8 @@ const {
  *   description: QR code generation, validation and scanning operations
  */
 
-// All routes require authentication
-router.use(authenticate);
+// All routes require authentication (user or business)
+router.use(authenticateUserOrBusiness);
 
 /**
  * @swagger

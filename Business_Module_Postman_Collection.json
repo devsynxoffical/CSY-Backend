@@ -39,7 +39,12 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"owner_email\": \"owner@restaurant.com\",\n  \"business_name\": \"Delicious Restaurant\",\n  \"business_type\": \"restaurant\",\n  \"app_type\": \"pass\",\n  \"address\": \"123 Main Street\",\n  \"city\": \"Damietta\",\n  \"governorate\": \"Damietta\",\n  \"latitude\": 31.4165,\n  \"longitude\": 31.8133,\n  \"password\": \"securepassword123\"\n}"
+							"raw": "{\n  \"owner_email\": \"owner@restaurant.com\",\n  \"business_name\": \"Delicious Restaurant\",\n  \"business_type\": \"restaurant\",\n  \"app_type\": \"pass\",\n  \"address\": \"123 Main Street\",\n  \"city\": \"Damietta\",\n  \"governorate\": \"Damietta\",\n  \"latitude\": 31.4165,\n  \"longitude\": 31.8133,\n  \"password\": \"securepassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "{{base_url}}/register",
@@ -411,7 +416,12 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"email\": \"cashier@restaurant.com\",\n  \"full_name\": \"John Smith\",\n  \"password_hash\": \"cashierpassword123\"\n}"
+							"raw": "{\n  \"email\": \"cashier@restaurant.com\",\n  \"full_name\": \"John Smith\",\n  \"password\": \"cashierpassword123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
 						},
 						"url": {
 							"raw": "{{base_url}}/cashiers",
@@ -1347,7 +1357,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost:3000/api/business",
+			"value": "https://csy-backend-production.up.railway.app/api/business",
 			"type": "string"
 		}
 	]

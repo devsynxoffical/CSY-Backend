@@ -300,10 +300,10 @@ class QRService {
   async processQRCode(qrCode, scannerUserId, scannerData) {
     switch (qrCode.type) {
       case 'reservation':
-        return await this.processReservationQR(qrCode, scannerUserId);
+        return await this.processReservationQR(qrCode, scannerUserId, scannerData);
 
       case 'order':
-        return await this.processOrderQR(qrCode, scannerUserId);
+        return await this.processOrderQR(qrCode, scannerUserId, scannerData);
 
       case 'discount':
         return await this.processDiscountQR(qrCode, scannerUserId);
@@ -326,7 +326,7 @@ class QRService {
   /**
    * Process reservation QR code
    */
-  async processReservationQR(qrCode, scannerUserId) {
+  async processReservationQR(qrCode, scannerUserId, scannerData = {}) {
     try {
       if (!qrCode.reference_id) {
         return {
@@ -349,29 +349,41 @@ class QRService {
         };
       }
 
+      const scannerType = scannerData.scannerType || 'user';
+      const scannerBusinessId = scannerData.business_id || qrCode.business_id;
+
       // Verify scanner has permission (business owner or staff)
-      if (qrCode.business_id && qrCode.business_id !== scannerUserId) {
-        const business = await prisma.business.findUnique({
-          where: { id: qrCode.business_id }
-        });
-        if (!business || business.owner_email !== scannerUserId) {
+      if (scannerType === 'business') {
+        // Business scanning - verify it's their reservation
+        if (reservation.business_id !== scannerBusinessId) {
           return {
             success: false,
-            message: 'Unauthorized to scan this QR code',
+            message: 'Unauthorized to scan this reservation QR code',
             error: 'UNAUTHORIZED',
             statusCode: 403
           };
         }
+
+        // Update reservation status if appropriate
+        if (reservation.status === 'confirmed' || reservation.status === 'pending') {
+          await prisma.reservation.update({
+            where: { id: reservation.id },
+            data: { status: 'completed' }
+          });
+          return {
+            success: true,
+            type: 'reservation',
+            reservationId: reservation.id,
+            message: 'Reservation validated and completed successfully',
+            data: {
+              reservation_id: reservation.id,
+              status: 'completed'
+            }
+          };
+        }
       }
 
-      // Update reservation status if appropriate
-      if (reservation.status === 'confirmed') {
-        await prisma.reservation.update({
-          where: { id: reservation.id },
-          data: { status: 'completed' }
-        });
-      }
-
+      // User scanning - just validate
       return {
         success: true,
         type: 'reservation',
@@ -379,7 +391,7 @@ class QRService {
         message: 'Reservation validated successfully',
         data: {
           reservation_id: reservation.id,
-          status: 'completed'
+          status: reservation.status
         }
       };
     } catch (error) {
@@ -395,7 +407,7 @@ class QRService {
   /**
    * Process order QR code
    */
-  async processOrderQR(qrCode, scannerUserId) {
+  async processOrderQR(qrCode, scannerUserId, scannerData = {}) {
     try {
       if (!qrCode.reference_id) {
         return {
@@ -425,8 +437,24 @@ class QRService {
         };
       }
 
-      // Different processing based on scanner type
-      if (qrCode.business_id) {
+      const scannerType = scannerData.scannerType || 'user';
+      const scannerBusinessId = scannerData.business_id || qrCode.business_id;
+
+      // Business scanning for order pickup/confirmation
+      if (scannerType === 'business' || scannerBusinessId) {
+        // Verify business owns this order (check order_items)
+        const orderBusinessIds = order.order_items?.map(item => item.business_id) || [];
+        const isBusinessOwner = scannerBusinessId && orderBusinessIds.includes(scannerBusinessId);
+
+        if (!isBusinessOwner && scannerType === 'business') {
+          return {
+            success: false,
+            message: 'You are not authorized to scan this order',
+            error: 'UNAUTHORIZED',
+            statusCode: 403
+          };
+        }
+
         // Business scanning for order pickup
         if (order.status === 'preparing' || order.status === 'accepted') {
           await prisma.order.update({
@@ -440,12 +468,27 @@ class QRService {
             message: 'Order ready for pickup',
             data: {
               order_id: order.id,
-              status: 'waiting_driver'
+              status: 'waiting_driver',
+              order_number: order.order_number
             }
           };
         }
+
+        // Business viewing order info
+        return {
+          success: true,
+          type: 'order_info',
+          orderId: order.id,
+          message: `Order status: ${order.status}`,
+          data: {
+            order_id: order.id,
+            status: order.status,
+            order_number: order.order_number
+          }
+        };
       }
 
+      // User scanning - return order info
       return {
         success: true,
         type: 'order_info',

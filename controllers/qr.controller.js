@@ -125,7 +125,11 @@ class QRController {
    */
   async scanQR(req, res) {
     try {
-      const userId = req.user.id;
+      // Support both user and business authentication
+      const scannerId = req.user?.id || req.business?.id;
+      const scannerType = req.scannerType || (req.business ? 'business' : 'user');
+      const businessId = req.business?.id || null;
+      
       const { qr_token, action, additional_data } = req.body;
 
       if (!qr_token) {
@@ -136,8 +140,25 @@ class QRController {
         });
       }
 
-      // Scan and process QR code
-      const scanResult = await qrService.scanQR(qr_token, userId, action, additional_data);
+      if (!scannerId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Authentication required',
+          error: 'UNAUTHORIZED'
+        });
+      }
+
+      // Scan and process QR code - pass business_id if scanning as business
+      const scanResult = await qrService.scanQR(
+        qr_token, 
+        scannerId, 
+        action, 
+        {
+          ...additional_data,
+          scannerType: scannerType,
+          business_id: businessId
+        }
+      );
 
       if (!scanResult.success) {
         return res.status(scanResult.statusCode || 400).json({

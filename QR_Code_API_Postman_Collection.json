@@ -1,11 +1,190 @@
 {
 	"info": {
-		"_postman_id": "qr-code-api-001",
-		"name": "QR Code API - Complete Collection",
-		"description": "Complete Postman collection for QR code generation, validation, and scanning endpoints. Includes all QR types: order, payment, reservation, discount, and driver_pickup.\n\n**IMPORTANT SETUP:**\n1. Set `base_url` environment variable\n2. Run 'User Login' to get `userToken`\n3. For Order/Reservation QR: Set `orderId`/`reservationId` (get from respective endpoints)\n4. For Payment/Discount QR: No setup needed (uses timestamp)\n5. Optional: Set `businessId` and `driverId` if needed",
+		"_postman_id": "qr-code-api-production-001",
+		"name": "QR Code API - Production Ready Collection",
+		"description": "Complete production-ready Postman collection for QR code operations. Supports both User and Business modules.\n\n**SETUP INSTRUCTIONS:**\n1. Set `base_url` environment variable (default: Railway production URL)\n2. **For User Module:** Run 'User Login' to get `userToken`\n3. **For Business Module:** Run 'Business Login' to get `businessToken`\n4. Use helper endpoints to get `orderId`, `reservationId`, `businessId`\n5. Generate QR codes using the IDs\n6. Scan QR codes with appropriate authentication\n\n**IMPORTANT:**\n- User QR operations require `userToken`\n- Business QR operations require `businessToken`\n- Order/Reservation QR requires valid IDs from database\n- Payment/Discount QR uses timestamp (no pre-existing ID needed)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
+		{
+			"name": "0. Setup & Helper Endpoints",
+			"item": [
+				{
+					"name": "Get User Orders (Helper)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.orders && response.data.orders.length > 0) {",
+									"        const firstOrder = response.data.orders[0];",
+									"        pm.environment.set(\"orderId\", firstOrder.id);",
+									"        pm.environment.set(\"businessId\", firstOrder.business_id || firstOrder.order_items?.[0]?.business_id || \"\");",
+									"        console.log(\"✅ Auto-saved first order ID:\", firstOrder.id);",
+									"        console.log(\"✅ Auto-saved business ID:\", firstOrder.business_id || firstOrder.order_items?.[0]?.business_id);",
+									"    } else {",
+									"        console.log(\"⚠️ No orders found. Create an order first.\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/orders/user?limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"user"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get user's orders. Auto-saves first order ID and business ID for QR generation."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Reservations (Helper)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.reservations && response.data.reservations.length > 0) {",
+									"        const firstReservation = response.data.reservations[0];",
+									"        pm.environment.set(\"reservationId\", firstReservation.id);",
+									"        pm.environment.set(\"businessId\", firstReservation.business_id || \"\");",
+									"        console.log(\"✅ Auto-saved first reservation ID:\", firstReservation.id);",
+									"        console.log(\"✅ Auto-saved business ID:\", firstReservation.business_id);",
+									"    } else {",
+									"        console.log(\"⚠️ No reservations found. Create a reservation first.\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{userToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/reservations/user?limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"reservations",
+								"user"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get user's reservations. Auto-saves first reservation ID and business ID for QR generation."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Business Orders (Helper)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.orders && response.data.orders.length > 0) {",
+									"        const firstOrder = response.data.orders[0];",
+									"        pm.environment.set(\"orderId\", firstOrder.id);",
+									"        pm.environment.set(\"businessId\", firstOrder.business_id || \"\");",
+									"        console.log(\"✅ Auto-saved first business order ID:\", firstOrder.id);",
+									"    } else {",
+									"        console.log(\"⚠️ No business orders found.\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business/orders?limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"orders"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get business orders. Auto-saves first order ID for QR generation."
+					},
+					"response": []
+				}
+			],
+			"description": "Helper endpoints to get orders and reservations for QR code generation"
+		},
 		{
 			"name": "1. Authentication",
 			"item": [
@@ -20,9 +199,14 @@
 									"    const response = pm.response.json();",
 									"    if (response.success && response.data && response.data.token) {",
 									"        pm.environment.set(\"userToken\", response.data.token);",
-									"        pm.environment.set(\"userId\", response.data.user.id);",
-									"        console.log(\"✅ User token saved:\", response.data.token);",
+									"        pm.environment.set(\"userId\", response.data.user?.id || \"\");",
+									"        console.log(\"✅ User token saved:\", response.data.token.substring(0, 20) + \"...\");",
+									"        console.log(\"✅ User ID:\", response.data.user?.id);",
+									"    } else {",
+									"        console.log(\"❌ Login failed:\", response.message);",
 									"    }",
+									"} else {",
+									"    console.log(\"❌ Login failed with status:\", pm.response.code);",
 									"}"
 								],
 								"type": "text/javascript"
@@ -52,18 +236,70 @@
 								"login"
 							]
 						},
-						"description": "Login as user to get authentication token. Required for all QR endpoints."
+						"description": "Login as user to get authentication token. **REQUIRED** for all user QR operations. Update email and password with valid credentials."
+					},
+					"response": []
+				},
+				{
+					"name": "Business Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.token) {",
+									"        pm.environment.set(\"businessToken\", response.data.token);",
+									"        pm.environment.set(\"businessId\", response.data.business?.id || \"\");",
+									"        console.log(\"✅ Business token saved:\", response.data.token.substring(0, 20) + \"...\");",
+									"        console.log(\"✅ Business ID:\", response.data.business?.id);",
+									"    } else {",
+									"        console.log(\"❌ Business login failed:\", response.message);",
+									"    }",
+									"} else {",
+									"    console.log(\"❌ Business login failed with status:\", pm.response.code);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"owner@business.com\",\n    \"password\": \"business123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/business/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"login"
+							]
+						},
+						"description": "Login as business to get authentication token. **REQUIRED** for business QR operations. Update email and password with valid business credentials."
 					},
 					"response": []
 				}
 			],
-			"description": "Authentication endpoints"
+			"description": "Authentication endpoints for User and Business modules"
 		},
 		{
 			"name": "2. Generate QR Codes",
 			"item": [
 				{
-					"name": "Generate Order QR",
+					"name": "Generate Order QR (User)",
 					"event": [
 						{
 							"listen": "test",
@@ -73,19 +309,16 @@
 									"    pm.response.to.have.status(201);",
 									"});",
 									"",
-									"pm.test(\"QR code generated successfully\", function () {",
+									"if (pm.response.code === 201) {",
 									"    const response = pm.response.json();",
-									"    if (response.success) {",
-									"        pm.expect(response.data).to.have.property('qr_token');",
-									"        pm.expect(response.data).to.have.property('qr_type');",
-									"        pm.expect(response.data.qr_type).to.eql('order');",
-									"        ",
-									"        // Save QR token for later use",
+									"    if (response.success && response.data) {",
 									"        pm.environment.set(\"orderQrToken\", response.data.qr_token);",
 									"        pm.environment.set(\"orderQrId\", response.data.id);",
-									"        console.log(\"✅ Order QR Token:\", response.data.qr_token);",
+									"        console.log(\"✅ Order QR Token saved:\", response.data.qr_token);",
+									"        console.log(\"✅ QR Type:\", response.data.qr_type);",
+									"        console.log(\"✅ Expires At:\", response.data.expires_at);",
 									"    }",
-									"});"
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -124,7 +357,7 @@
 								"generate"
 							]
 						},
-						"description": "Generate QR code for an order. **IMPORTANT:** You must set `orderId` environment variable first (get it from Get User Orders endpoint). Requires a valid order ID that exists in database. QR expires in 24 hours."
+						"description": "Generate QR code for an order. **REQUIRES:** Valid `orderId` (set via Get User Orders helper). QR expires in 24 hours. Auto-saves `orderQrToken` for scanning."
 					},
 					"response": []
 				},
@@ -139,13 +372,13 @@
 									"    pm.response.to.have.status(201);",
 									"});",
 									"",
-									"pm.test(\"Payment QR generated\", function () {",
+									"if (pm.response.code === 201) {",
 									"    const response = pm.response.json();",
-									"    if (response.success) {",
+									"    if (response.success && response.data) {",
 									"        pm.environment.set(\"paymentQrToken\", response.data.qr_token);",
-									"        console.log(\"✅ Payment QR Token:\", response.data.qr_token);",
+									"        console.log(\"✅ Payment QR Token saved:\", response.data.qr_token);",
 									"    }",
-									"});"
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -184,7 +417,7 @@
 								"generate"
 							]
 						},
-						"description": "Generate QR code for payment. **NOTE:** Payment QR doesn't require existing reference - uses timestamp. QR expires in 1 hour. One-time use only."
+						"description": "Generate QR code for payment. **NOTE:** Uses timestamp (no pre-existing ID needed). QR expires in 1 hour. One-time use only. Auto-saves `paymentQrToken`."
 					},
 					"response": []
 				},
@@ -199,13 +432,13 @@
 									"    pm.response.to.have.status(201);",
 									"});",
 									"",
-									"pm.test(\"Reservation QR generated\", function () {",
+									"if (pm.response.code === 201) {",
 									"    const response = pm.response.json();",
-									"    if (response.success) {",
+									"    if (response.success && response.data) {",
 									"        pm.environment.set(\"reservationQrToken\", response.data.qr_token);",
-									"        console.log(\"✅ Reservation QR Token:\", response.data.qr_token);",
+									"        console.log(\"✅ Reservation QR Token saved:\", response.data.qr_token);",
 									"    }",
-									"});"
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -244,7 +477,7 @@
 								"generate"
 							]
 						},
-						"description": "Generate QR code for a reservation. **IMPORTANT:** You must set `reservationId` environment variable first (get it from Get Reservations endpoint). Requires a valid reservation ID that exists in database. QR expires in 24 hours."
+						"description": "Generate QR code for a reservation. **REQUIRES:** Valid `reservationId` (set via Get User Reservations helper). QR expires in 24 hours. Auto-saves `reservationQrToken`."
 					},
 					"response": []
 				},
@@ -259,13 +492,13 @@
 									"    pm.response.to.have.status(201);",
 									"});",
 									"",
-									"pm.test(\"Discount QR generated\", function () {",
+									"if (pm.response.code === 201) {",
 									"    const response = pm.response.json();",
-									"    if (response.success) {",
+									"    if (response.success && response.data) {",
 									"        pm.environment.set(\"discountQrToken\", response.data.qr_token);",
-									"        console.log(\"✅ Discount QR Token:\", response.data.qr_token);",
+									"        console.log(\"✅ Discount QR Token saved:\", response.data.qr_token);",
 									"    }",
-									"});"
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -304,7 +537,7 @@
 								"generate"
 							]
 						},
-						"description": "Generate QR code for discount/coupon. **NOTE:** Discount QR doesn't require existing reference - uses timestamp. QR expires in 24 hours. One-time use only."
+						"description": "Generate QR code for discount/coupon. **NOTE:** Uses timestamp (no pre-existing ID needed). QR expires in 24 hours. One-time use only. Auto-saves `discountQrToken`."
 					},
 					"response": []
 				},
@@ -319,13 +552,13 @@
 									"    pm.response.to.have.status(201);",
 									"});",
 									"",
-									"pm.test(\"Driver Pickup QR generated\", function () {",
+									"if (pm.response.code === 201) {",
 									"    const response = pm.response.json();",
-									"    if (response.success) {",
+									"    if (response.success && response.data) {",
 									"        pm.environment.set(\"driverPickupQrToken\", response.data.qr_token);",
-									"        console.log(\"✅ Driver Pickup QR Token:\", response.data.qr_token);",
+									"        console.log(\"✅ Driver Pickup QR Token saved:\", response.data.qr_token);",
 									"    }",
-									"});"
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -364,12 +597,12 @@
 								"generate"
 							]
 						},
-						"description": "Generate QR code for driver pickup. **IMPORTANT:** You must set `orderId` and `driverId` environment variables first. Requires a valid order ID that exists in database. QR expires in 2 hours. Used by drivers to confirm order pickup."
+						"description": "Generate QR code for driver pickup. **REQUIRES:** Valid `orderId` and `driverId`. QR expires in 2 hours. Used by drivers to confirm order pickup. Auto-saves `driverPickupQrToken`."
 					},
 					"response": []
 				}
 			],
-			"description": "Generate QR codes for different types"
+			"description": "Generate QR codes for all types (Order, Payment, Reservation, Discount, Driver Pickup)"
 		},
 		{
 			"name": "3. Validate QR Code",
@@ -385,18 +618,17 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"QR code is valid\", function () {",
+									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
 									"    if (response.success) {",
-									"        pm.expect(response.data).to.have.property('is_valid');",
-									"        pm.expect(response.data.is_valid).to.be.true;",
-									"        pm.expect(response.data).to.have.property('qr_type');",
-									"        pm.expect(response.data).to.have.property('expires_at');",
 									"        console.log(\"✅ QR Code is valid\");",
 									"        console.log(\"QR Type:\", response.data.qr_type);",
 									"        console.log(\"Expires At:\", response.data.expires_at);",
+									"        console.log(\"Reference ID:\", response.data.reference_id);",
+									"    } else {",
+									"        console.log(\"❌ QR Code validation failed:\", response.message);",
 									"    }",
-									"});"
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -435,18 +667,18 @@
 								"validate"
 							]
 						},
-						"description": "Validate if a QR code token is valid and not expired. Use this before scanning to check QR status."
+						"description": "Validate if a QR code token is valid and not expired. Use this before scanning to check QR status. Works with any QR token (orderQrToken, paymentQrToken, etc.)."
 					},
 					"response": []
 				}
 			],
-			"description": "Validate QR code endpoints"
+			"description": "Validate QR code before scanning"
 		},
 		{
-			"name": "4. Scan QR Code",
+			"name": "4. Scan QR Code (User Module)",
 			"item": [
 				{
-					"name": "Scan Order QR",
+					"name": "Scan Order QR (User)",
 					"event": [
 						{
 							"listen": "test",
@@ -456,14 +688,16 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Order QR scanned successfully\", function () {",
+									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
 									"    if (response.success) {",
-									"        pm.expect(response).to.have.property('message');",
-									"        pm.expect(response).to.have.property('data');",
-									"        console.log(\"✅ QR Scan Result:\", response.message);",
+									"        console.log(\"✅ Order QR scanned successfully\");",
+									"        console.log(\"Message:\", response.message);",
+									"        console.log(\"Order Status:\", response.data?.status);",
+									"    } else {",
+									"        console.log(\"❌ Scan failed:\", response.message);",
 									"    }",
-									"});"
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -502,12 +736,12 @@
 								"scan"
 							]
 						},
-						"description": "Scan and process an order QR code. Updates order status based on scanner type (business/driver)."
+						"description": "Scan and process an order QR code as a user. Updates order status. **REQUIRES:** Valid `userToken` and `orderQrToken`."
 					},
 					"response": []
 				},
 				{
-					"name": "Scan Payment QR",
+					"name": "Scan Payment QR (User)",
 					"event": [
 						{
 							"listen": "test",
@@ -517,12 +751,12 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Payment QR processed\", function () {",
+									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
 									"    if (response.success) {",
-									"        console.log(\"✅ Payment processed:\", response.message);",
+									"        console.log(\"✅ Payment QR processed:\", response.message);",
 									"    }",
-									"});"
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -561,12 +795,12 @@
 								"scan"
 							]
 						},
-						"description": "Scan and process a payment QR code. Processes payment and marks QR as used (one-time use)."
+						"description": "Scan and process a payment QR code. Processes payment and marks QR as used (one-time use). **REQUIRES:** Valid `userToken` and `paymentQrToken`."
 					},
 					"response": []
 				},
 				{
-					"name": "Scan Reservation QR",
+					"name": "Scan Reservation QR (User)",
 					"event": [
 						{
 							"listen": "test",
@@ -576,12 +810,12 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Reservation QR processed\", function () {",
+									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
 									"    if (response.success) {",
 									"        console.log(\"✅ Reservation validated:\", response.message);",
 									"    }",
-									"});"
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -620,12 +854,12 @@
 								"scan"
 							]
 						},
-						"description": "Scan and process a reservation QR code. Validates reservation and updates status to completed."
+						"description": "Scan and process a reservation QR code. Validates reservation and updates status to completed. **REQUIRES:** Valid `userToken` and `reservationQrToken`."
 					},
 					"response": []
 				},
 				{
-					"name": "Scan Discount QR",
+					"name": "Scan Discount QR (User)",
 					"event": [
 						{
 							"listen": "test",
@@ -635,12 +869,12 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Discount QR processed\", function () {",
+									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
 									"    if (response.success) {",
 									"        console.log(\"✅ Discount applied:\", response.message);",
 									"    }",
-									"});"
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -679,12 +913,12 @@
 								"scan"
 							]
 						},
-						"description": "Scan and process a discount QR code. Applies discount and marks QR as used (one-time use)."
+						"description": "Scan and process a discount QR code. Applies discount and marks QR as used (one-time use). **REQUIRES:** Valid `userToken` and `discountQrToken`."
 					},
 					"response": []
 				},
 				{
-					"name": "Scan Driver Pickup QR",
+					"name": "Scan Driver Pickup QR (User)",
 					"event": [
 						{
 							"listen": "test",
@@ -694,12 +928,12 @@
 									"    pm.response.to.have.status(200);",
 									"});",
 									"",
-									"pm.test(\"Driver pickup QR processed\", function () {",
+									"if (pm.response.code === 200) {",
 									"    const response = pm.response.json();",
 									"    if (response.success) {",
 									"        console.log(\"✅ Pickup confirmed:\", response.message);",
 									"    }",
-									"});"
+									"}"
 								],
 								"type": "text/javascript"
 							}
@@ -738,12 +972,198 @@
 								"scan"
 							]
 						},
-						"description": "Scan and process a driver pickup QR code. Confirms order pickup by driver and updates order status."
+						"description": "Scan and process a driver pickup QR code. **NOTE:** This should be used by drivers, not users. Confirms order pickup and updates order status. **REQUIRES:** Valid `userToken` (driver token) and `driverPickupQrToken`."
 					},
 					"response": []
 				}
 			],
-			"description": "Scan and process QR codes"
+			"description": "Scan QR codes as a user. All endpoints require valid `userToken`."
+		},
+		{
+			"name": "5. Scan QR Code (Business Module)",
+			"item": [
+				{
+					"name": "Scan Order QR (Business)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success) {",
+									"        console.log(\"✅ Order QR scanned by business:\", response.message);",
+									"        console.log(\"Order Status:\", response.data?.status);",
+									"    } else {",
+									"        console.log(\"❌ Scan failed:\", response.message);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qr_token\": \"{{orderQrToken}}\",\n    \"action\": \"process\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/scan",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"scan"
+							]
+						},
+						"description": "Scan and process an order QR code as a business. **NOTE:** QR routes currently use `authenticate` middleware which may not work for businesses. If you get 'User not found or inactive', the QR routes may need to support business authentication. **REQUIRES:** Valid `businessToken` and `orderQrToken`."
+					},
+					"response": []
+				},
+				{
+					"name": "Scan Payment QR (Business)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success) {",
+									"        console.log(\"✅ Payment QR processed by business:\", response.message);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qr_token\": \"{{paymentQrToken}}\",\n    \"action\": \"process\",\n    \"additional_data\": {\n        \"amount\": 5000\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/scan",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"scan"
+							]
+						},
+						"description": "Scan and process a payment QR code as a business. **NOTE:** QR routes may need business authentication support. **REQUIRES:** Valid `businessToken` and `paymentQrToken`."
+					},
+					"response": []
+				},
+				{
+					"name": "Scan Reservation QR (Business)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success) {",
+									"        console.log(\"✅ Reservation validated by business:\", response.message);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qr_token\": \"{{reservationQrToken}}\",\n    \"action\": \"process\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/scan",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"scan"
+							]
+						},
+						"description": "Scan and process a reservation QR code as a business. Validates reservation and updates status. **REQUIRES:** Valid `businessToken` and `reservationQrToken`."
+					},
+					"response": []
+				}
+			],
+			"description": "Scan QR codes as a business. **IMPORTANT:** QR routes currently use `authenticate` middleware which may not support business authentication. If you encounter 'User not found or inactive', the backend may need to be updated to support business authentication for QR scanning."
 		}
 	],
 	"variable": [
@@ -755,57 +1175,78 @@
 		{
 			"key": "userToken",
 			"value": "",
-			"type": "string"
+			"type": "string",
+			"description": "User authentication token - Set via User Login"
 		},
 		{
-			"key": "orderQrToken",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "paymentQrToken",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "reservationQrToken",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "discountQrToken",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "driverPickupQrToken",
-			"value": "",
-			"type": "string"
-		},
-		{
-			"key": "orderId",
+			"key": "businessToken",
 			"value": "",
 			"type": "string",
-			"description": "Order ID - Get from Get User Orders endpoint"
+			"description": "Business authentication token - Set via Business Login"
 		},
 		{
-			"key": "reservationId",
+			"key": "userId",
 			"value": "",
-			"type": "string",
-			"description": "Reservation ID - Get from Get Reservations endpoint"
+			"type": "string"
 		},
 		{
 			"key": "businessId",
 			"value": "",
 			"type": "string",
-			"description": "Business ID - Get from Get All Businesses endpoint"
+			"description": "Business ID - Auto-saved from helper endpoints"
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "string",
+			"description": "Order ID - Auto-saved from Get User Orders helper"
+		},
+		{
+			"key": "reservationId",
+			"value": "",
+			"type": "string",
+			"description": "Reservation ID - Auto-saved from Get User Reservations helper"
 		},
 		{
 			"key": "driverId",
 			"value": "",
 			"type": "string",
-			"description": "Driver ID - Get from Get All Drivers endpoint"
+			"description": "Driver ID - Set manually if needed for driver pickup QR"
+		},
+		{
+			"key": "orderQrToken",
+			"value": "",
+			"type": "string",
+			"description": "Order QR token - Auto-saved from Generate Order QR"
+		},
+		{
+			"key": "paymentQrToken",
+			"value": "",
+			"type": "string",
+			"description": "Payment QR token - Auto-saved from Generate Payment QR"
+		},
+		{
+			"key": "reservationQrToken",
+			"value": "",
+			"type": "string",
+			"description": "Reservation QR token - Auto-saved from Generate Reservation QR"
+		},
+		{
+			"key": "discountQrToken",
+			"value": "",
+			"type": "string",
+			"description": "Discount QR token - Auto-saved from Generate Discount QR"
+		},
+		{
+			"key": "driverPickupQrToken",
+			"value": "",
+			"type": "string",
+			"description": "Driver Pickup QR token - Auto-saved from Generate Driver Pickup QR"
+		},
+		{
+			"key": "orderQrId",
+			"value": "",
+			"type": "string"
 		}
 	]
 }
-

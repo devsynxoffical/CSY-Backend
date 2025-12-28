@@ -380,12 +380,129 @@ const verifyToken = (token) => {
   }
 };
 
+// Combined authentication: supports both user and business
+const authenticateUserOrBusiness = async (req, res, next) => {
+  try {
+    // Get token from header
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.startsWith('Bearer ')
+      ? authHeader.substring(7)
+      : req.headers['x-access-token'] || req.query.token;
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Access token is required',
+        error: ERROR_MESSAGES.INVALID_CREDENTIALS
+      });
+    }
+
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key');
+    const role = decoded.role || 'user';
+
+    // Try to authenticate as user first
+    if (role === 'user' || !role || role === 'driver' || role === 'cashier') {
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId }
+      });
+
+      if (user && user.is_active) {
+        req.user = {
+          id: user.id,
+          full_name: user.full_name,
+          email: user.email,
+          phone: user.phone,
+          pass_id: user.pass_id,
+          governorate_code: user.governorate_code,
+          wallet_balance: user.wallet_balance,
+          points: user.points,
+          is_verified: user.is_verified,
+          role: role
+        };
+        req.scannerType = 'user';
+        return next();
+      }
+    }
+
+    // Try to authenticate as business
+    if (role === 'business' || !role) {
+      const business = await prisma.business.findUnique({
+        where: { id: decoded.userId }
+      });
+
+      if (business && business.is_active) {
+        req.business = {
+          id: business.id,
+          owner_email: business.owner_email,
+          business_name: business.business_name,
+          business_type: business.business_type,
+          app_type: business.app_type,
+          address: business.address,
+          city: business.city,
+          governorate: business.governorate,
+          latitude: business.latitude,
+          longitude: business.longitude,
+          working_hours: business.working_hours,
+          photos: business.photos,
+          videos: business.videos,
+          rating_average: business.rating_average,
+          rating_count: business.rating_count,
+          has_reservations: business.has_reservations,
+          has_delivery: business.has_delivery,
+          is_active: business.is_active,
+          role: 'business'
+        };
+        // Also set req.user.id for compatibility with existing code
+        req.user = {
+          id: business.id,
+          role: 'business'
+        };
+        req.scannerType = 'business';
+        return next();
+      }
+    }
+
+    // If neither user nor business found
+    return res.status(401).json({
+      success: false,
+      message: 'User or business not found or inactive',
+      error: ERROR_MESSAGES.USER_NOT_FOUND
+    });
+
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token',
+        error: 'Token verification failed'
+      });
+    }
+
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token expired',
+        error: 'Please login again'
+      });
+    }
+
+    console.error('Auth middleware error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: 'Authentication failed'
+    });
+  }
+};
+
 module.exports = {
   authenticate,
   optionalAuth,
   authenticateBusiness,
   authenticateDriver,
   authenticateCashier,
+  authenticateUserOrBusiness,
   generateToken,
   verifyToken
 };

@@ -1,7 +1,14 @@
+require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcryptjs');
 
-process.env.DATABASE_URL = 'postgresql://postgres:rdGEkKzyfuDUqsBdvwhKzaDfHdZVOtwA@metro.proxy.rlwy.net:49988/railway';
+// Use DATABASE_URL from .env, or fallback to provided connection string
+if (!process.env.DATABASE_URL) {
+  process.env.DATABASE_URL = 'postgresql://postgres:rdGEkKzyfuDUqsBdvwhKzaDfHdZVOtwA@metro.proxy.rlwy.net:49988/railway';
+  console.log('⚠️  Using hardcoded DATABASE_URL (should be in .env file)');
+} else {
+  console.log('✅ Using DATABASE_URL from .env file');
+}
 
 const prisma = new PrismaClient();
 

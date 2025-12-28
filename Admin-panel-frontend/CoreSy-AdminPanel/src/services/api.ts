@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://csy-backend-production.up.railway.app';
+// Use environment variable with fallback to production URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://csy-backend-production.up.railway.app';
 
 // Create axios instance with default config
 export const api = axios.create({
