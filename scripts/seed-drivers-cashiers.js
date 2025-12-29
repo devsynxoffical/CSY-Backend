@@ -97,126 +97,404 @@ async function seedDriversAndCashiers() {
         // ============================================
         console.log('🛵 Creating drivers...\n');
 
+        // Comprehensive driver data with detailed information
+        // 25 drivers with varied profiles, locations, earnings, and ratings
         const driversData = [
+            // Top Performers (High Ratings & Earnings)
             {
                 full_name: 'Ahmed Hassan',
-                email: 'ahmed.driver@example.com',
+                email: 'ahmed.hassan.driver@example.com',
                 phone: '+201012345678',
                 vehicle_type: 'motorcycle',
                 profile_picture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
                 current_latitude: 30.0444,
                 current_longitude: 31.2357,
                 is_available: true,
-                earnings_cash: 15000,
-                earnings_online: 25000,
-                platform_fees_owed: 800,
-                rating_average: 4.8,
-                rating_count: 45
+                earnings_cash: 18500,
+                earnings_online: 32000,
+                platform_fees_owed: 1010,
+                rating_average: 4.85,
+                rating_count: 127
             },
             {
                 full_name: 'Mohamed Ali',
-                email: 'mohamed.driver@example.com',
+                email: 'mohamed.ali.driver@example.com',
                 phone: '+201012345679',
                 vehicle_type: 'car',
                 profile_picture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
                 current_latitude: 30.0626,
                 current_longitude: 31.2497,
                 is_available: true,
-                earnings_cash: 22000,
-                earnings_online: 35000,
-                platform_fees_owed: 1140,
-                rating_average: 4.9,
-                rating_count: 78
-            },
-            {
-                full_name: 'Omar Ibrahim',
-                email: 'omar.driver@example.com',
-                phone: '+201012345680',
-                vehicle_type: 'motorcycle',
-                profile_picture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
-                current_latitude: 30.0131,
-                current_longitude: 31.2089,
-                is_available: false,
-                earnings_cash: 18000,
-                earnings_online: 28000,
-                platform_fees_owed: 920,
-                rating_average: 4.7,
-                rating_count: 32
+                earnings_cash: 32000,
+                earnings_online: 48000,
+                platform_fees_owed: 1600,
+                rating_average: 4.92,
+                rating_count: 189
             },
             {
                 full_name: 'Youssef Mahmoud',
-                email: 'youssef.driver@example.com',
+                email: 'youssef.mahmoud.driver@example.com',
                 phone: '+201012345681',
                 vehicle_type: 'car',
                 profile_picture: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop',
                 current_latitude: 30.0875,
                 current_longitude: 31.2194,
                 is_available: true,
-                earnings_cash: 30000,
-                earnings_online: 45000,
-                platform_fees_owed: 1500,
-                rating_average: 4.95,
-                rating_count: 120
-            },
-            {
-                full_name: 'Khaled Samir',
-                email: 'khaled.driver@example.com',
-                phone: '+201012345682',
-                vehicle_type: 'motorcycle',
-                profile_picture: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop',
-                current_latitude: 30.0333,
-                current_longitude: 31.2333,
-                is_available: true,
-                earnings_cash: 12000,
-                earnings_online: 20000,
-                platform_fees_owed: 640,
-                rating_average: 4.6,
-                rating_count: 28
+                earnings_cash: 35000,
+                earnings_online: 52000,
+                platform_fees_owed: 1740,
+                rating_average: 4.96,
+                rating_count: 215
             },
             {
                 full_name: 'Tarek Fawzy',
-                email: 'tarek.driver@example.com',
+                email: 'tarek.fawzy.driver@example.com',
                 phone: '+201012345683',
                 vehicle_type: 'car',
                 profile_picture: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=400&fit=crop',
                 current_latitude: 30.0500,
                 current_longitude: 31.2500,
                 is_available: true,
-                earnings_cash: 25000,
-                earnings_online: 40000,
-                platform_fees_owed: 1300,
-                rating_average: 4.85,
-                rating_count: 95
-            },
-            {
-                full_name: 'Hassan Mostafa',
-                email: 'hassan.driver@example.com',
-                phone: '+201012345684',
-                vehicle_type: 'motorcycle',
-                profile_picture: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=400&fit=crop',
-                current_latitude: 30.0200,
-                current_longitude: 31.2200,
-                is_available: false,
-                earnings_cash: 14000,
-                earnings_online: 23000,
-                platform_fees_owed: 740,
-                rating_average: 4.75,
-                rating_count: 40
+                earnings_cash: 28000,
+                earnings_online: 42000,
+                platform_fees_owed: 1400,
+                rating_average: 4.88,
+                rating_count: 156
             },
             {
                 full_name: 'Amr Nabil',
-                email: 'amr.driver@example.com',
+                email: 'amr.nabil.driver@example.com',
                 phone: '+201012345685',
                 vehicle_type: 'car',
                 profile_picture: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&h=400&fit=crop',
                 current_latitude: 30.0700,
                 current_longitude: 31.2400,
                 is_available: true,
-                earnings_cash: 28000,
-                earnings_online: 42000,
-                platform_fees_owed: 1400,
-                rating_average: 4.9,
-                rating_count: 110
+                earnings_cash: 31000,
+                earnings_online: 46000,
+                platform_fees_owed: 1540,
+                rating_average: 4.91,
+                rating_count: 178
+            },
+            // Experienced Motorcycle Drivers
+            {
+                full_name: 'Omar Ibrahim',
+                email: 'omar.ibrahim.driver@example.com',
+                phone: '+201012345680',
+                vehicle_type: 'motorcycle',
+                profile_picture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+                current_latitude: 30.0131,
+                current_longitude: 31.2089,
+                is_available: false,
+                earnings_cash: 19500,
+                earnings_online: 31000,
+                platform_fees_owed: 1010,
+                rating_average: 4.78,
+                rating_count: 89
+            },
+            {
+                full_name: 'Khaled Samir',
+                email: 'khaled.samir.driver@example.com',
+                phone: '+201012345682',
+                vehicle_type: 'motorcycle',
+                profile_picture: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop',
+                current_latitude: 30.0333,
+                current_longitude: 31.2333,
+                is_available: true,
+                earnings_cash: 16500,
+                earnings_online: 28000,
+                platform_fees_owed: 890,
+                rating_average: 4.72,
+                rating_count: 67
+            },
+            {
+                full_name: 'Hassan Mostafa',
+                email: 'hassan.mostafa.driver@example.com',
+                phone: '+201012345684',
+                vehicle_type: 'motorcycle',
+                profile_picture: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=400&fit=crop',
+                current_latitude: 30.0200,
+                current_longitude: 31.2200,
+                is_available: false,
+                earnings_cash: 15200,
+                earnings_online: 26500,
+                platform_fees_owed: 834,
+                rating_average: 4.68,
+                rating_count: 54
+            },
+            {
+                full_name: 'Mahmoud Sayed',
+                email: 'mahmoud.sayed.driver@example.com',
+                phone: '+201012345686',
+                vehicle_type: 'motorcycle',
+                profile_picture: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop',
+                current_latitude: 30.0555,
+                current_longitude: 31.2222,
+                is_available: true,
+                earnings_cash: 14200,
+                earnings_online: 24000,
+                platform_fees_owed: 764,
+                rating_average: 4.65,
+                rating_count: 43
+            },
+            {
+                full_name: 'Ibrahim Reda',
+                email: 'ibrahim.reda.driver@example.com',
+                phone: '+201012345687',
+                vehicle_type: 'motorcycle',
+                profile_picture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+                current_latitude: 30.0666,
+                current_longitude: 31.2111,
+                is_available: true,
+                earnings_cash: 13800,
+                earnings_online: 23500,
+                platform_fees_owed: 746,
+                rating_average: 4.63,
+                rating_count: 38
+            },
+            // Mid-Level Car Drivers
+            {
+                full_name: 'Waleed Kamel',
+                email: 'waleed.kamel.driver@example.com',
+                phone: '+201012345688',
+                vehicle_type: 'car',
+                profile_picture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+                current_latitude: 30.0777,
+                current_longitude: 31.2333,
+                is_available: true,
+                earnings_cash: 24000,
+                earnings_online: 38000,
+                platform_fees_owed: 1240,
+                rating_average: 4.79,
+                rating_count: 112
+            },
+            {
+                full_name: 'Samy Farid',
+                email: 'samy.farid.driver@example.com',
+                phone: '+201012345689',
+                vehicle_type: 'car',
+                profile_picture: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop',
+                current_latitude: 30.0888,
+                current_longitude: 31.2444,
+                is_available: false,
+                earnings_cash: 22000,
+                earnings_online: 35000,
+                platform_fees_owed: 1140,
+                rating_average: 4.76,
+                rating_count: 98
+            },
+            {
+                full_name: 'Hany Magdy',
+                email: 'hany.magdy.driver@example.com',
+                phone: '+201012345690',
+                vehicle_type: 'car',
+                profile_picture: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=400&fit=crop',
+                current_latitude: 30.0999,
+                current_longitude: 31.2555,
+                is_available: true,
+                earnings_cash: 26000,
+                earnings_online: 40000,
+                platform_fees_owed: 1320,
+                rating_average: 4.82,
+                rating_count: 134
+            },
+            {
+                full_name: 'Sherif Adel',
+                email: 'sherif.adel.driver@example.com',
+                phone: '+201012345691',
+                vehicle_type: 'car',
+                profile_picture: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&h=400&fit=crop',
+                current_latitude: 30.0111,
+                current_longitude: 31.2666,
+                is_available: true,
+                earnings_cash: 23000,
+                earnings_online: 36000,
+                platform_fees_owed: 1180,
+                rating_average: 4.74,
+                rating_count: 87
+            },
+            {
+                full_name: 'Karim Osama',
+                email: 'karim.osama.driver@example.com',
+                phone: '+201012345692',
+                vehicle_type: 'car',
+                profile_picture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
+                current_latitude: 30.0222,
+                current_longitude: 31.2777,
+                is_available: false,
+                earnings_cash: 21000,
+                earnings_online: 33000,
+                platform_fees_owed: 1080,
+                rating_average: 4.71,
+                rating_count: 76
+            },
+            // Newer Drivers (Lower Earnings, Building Reputation)
+            {
+                full_name: 'Mostafa Ashraf',
+                email: 'mostafa.ashraf.driver@example.com',
+                phone: '+201012345693',
+                vehicle_type: 'motorcycle',
+                profile_picture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+                current_latitude: 30.0333,
+                current_longitude: 31.2888,
+                is_available: true,
+                earnings_cash: 8500,
+                earnings_online: 15000,
+                platform_fees_owed: 470,
+                rating_average: 4.55,
+                rating_count: 22
+            },
+            {
+                full_name: 'Bassem Tamer',
+                email: 'bassem.tamer.driver@example.com',
+                phone: '+201012345694',
+                vehicle_type: 'motorcycle',
+                profile_picture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+                current_latitude: 30.0444,
+                current_longitude: 31.2999,
+                is_available: true,
+                earnings_cash: 9200,
+                earnings_online: 16500,
+                platform_fees_owed: 514,
+                rating_average: 4.58,
+                rating_count: 28
+            },
+            {
+                full_name: 'Ramy Hossam',
+                email: 'ramy.hossam.driver@example.com',
+                phone: '+201012345695',
+                vehicle_type: 'car',
+                profile_picture: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop',
+                current_latitude: 30.0555,
+                current_longitude: 31.3000,
+                is_available: true,
+                earnings_cash: 12000,
+                earnings_online: 20000,
+                platform_fees_owed: 640,
+                rating_average: 4.62,
+                rating_count: 35
+            },
+            {
+                full_name: 'Adel Nader',
+                email: 'adel.nader.driver@example.com',
+                phone: '+201012345696',
+                vehicle_type: 'car',
+                profile_picture: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=400&fit=crop',
+                current_latitude: 30.0666,
+                current_longitude: 31.3111,
+                is_available: false,
+                earnings_cash: 11000,
+                earnings_online: 18500,
+                platform_fees_owed: 590,
+                rating_average: 4.59,
+                rating_count: 31
+            },
+            {
+                full_name: 'Fady Emad',
+                email: 'fady.emad.driver@example.com',
+                phone: '+201012345697',
+                vehicle_type: 'motorcycle',
+                profile_picture: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=400&h=400&fit=crop',
+                current_latitude: 30.0777,
+                current_longitude: 31.3222,
+                is_available: true,
+                earnings_cash: 7800,
+                earnings_online: 14000,
+                platform_fees_owed: 436,
+                rating_average: 4.52,
+                rating_count: 19
+            },
+            // Experienced but Currently Unavailable
+            {
+                full_name: 'Nader Yasser',
+                email: 'nader.yasser.driver@example.com',
+                phone: '+201012345698',
+                vehicle_type: 'car',
+                profile_picture: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=400&fit=crop',
+                current_latitude: 30.0888,
+                current_longitude: 31.3333,
+                is_available: false,
+                earnings_cash: 27000,
+                earnings_online: 41000,
+                platform_fees_owed: 1360,
+                rating_average: 4.83,
+                rating_count: 145
+            },
+            {
+                full_name: 'Yasser Zaki',
+                email: 'yasser.zaki.driver@example.com',
+                phone: '+201012345699',
+                vehicle_type: 'motorcycle',
+                profile_picture: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop',
+                current_latitude: 30.0999,
+                current_longitude: 31.3444,
+                is_available: false,
+                earnings_cash: 18800,
+                earnings_online: 30500,
+                platform_fees_owed: 986,
+                rating_average: 4.77,
+                rating_count: 102
+            },
+            {
+                full_name: 'Zaki Mounir',
+                email: 'zaki.mounir.driver@example.com',
+                phone: '+201012345700',
+                vehicle_type: 'car',
+                profile_picture: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=400&h=400&fit=crop',
+                current_latitude: 30.0100,
+                current_longitude: 31.3555,
+                is_available: false,
+                earnings_cash: 25000,
+                earnings_online: 39000,
+                platform_fees_owed: 1280,
+                rating_average: 4.81,
+                rating_count: 123
+            },
+            // Active High-Performers
+            {
+                full_name: 'Mounir Fawzy',
+                email: 'mounir.fawzy.driver@example.com',
+                phone: '+201012345701',
+                vehicle_type: 'motorcycle',
+                profile_picture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+                current_latitude: 30.0200,
+                current_longitude: 31.3666,
+                is_available: true,
+                earnings_cash: 17200,
+                earnings_online: 29000,
+                platform_fees_owed: 924,
+                rating_average: 4.73,
+                rating_count: 81
+            },
+            {
+                full_name: 'Fawzy Sameh',
+                email: 'fawzy.sameh.driver@example.com',
+                phone: '+201012345702',
+                vehicle_type: 'car',
+                profile_picture: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop',
+                current_latitude: 30.0300,
+                current_longitude: 31.3777,
+                is_available: true,
+                earnings_cash: 29000,
+                earnings_online: 44000,
+                platform_fees_owed: 1460,
+                rating_average: 4.87,
+                rating_count: 167
+            },
+            {
+                full_name: 'Sameh Medhat',
+                email: 'sameh.medhat.driver@example.com',
+                phone: '+201012345703',
+                vehicle_type: 'motorcycle',
+                profile_picture: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&h=400&fit=crop',
+                current_latitude: 30.0400,
+                current_longitude: 31.3888,
+                is_available: true,
+                earnings_cash: 14800,
+                earnings_online: 25000,
+                platform_fees_owed: 796,
+                rating_average: 4.66,
+                rating_count: 49
             }
         ];
 
@@ -392,24 +670,59 @@ async function seedDriversAndCashiers() {
         // ============================================
         // SUMMARY
         // ============================================
+        // Calculate statistics
+        const availableDrivers = createdDrivers.filter(d => d.is_available);
+        const unavailableDrivers = createdDrivers.filter(d => !d.is_available);
+        const motorcycleDrivers = createdDrivers.filter(d => d.vehicle_type === 'motorcycle');
+        const carDrivers = createdDrivers.filter(d => d.vehicle_type === 'car');
+        const totalEarningsCash = createdDrivers.reduce((sum, d) => sum + Number(d.earnings_cash), 0);
+        const totalEarningsOnline = createdDrivers.reduce((sum, d) => sum + Number(d.earnings_online), 0);
+        const totalPlatformFees = createdDrivers.reduce((sum, d) => sum + Number(d.platform_fees_owed), 0);
+        const avgRating = createdDrivers.reduce((sum, d) => sum + Number(d.rating_average), 0) / createdDrivers.length;
+        const totalRatings = createdDrivers.reduce((sum, d) => sum + d.rating_count, 0);
+
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         console.log('📊 SEEDING SUMMARY');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-        console.log(`✅ Drivers: ${createdDrivers.length}`);
-        console.log(`   - Available: ${createdDrivers.filter(d => d.is_available).length}`);
-        console.log(`   - Motorcycles: ${createdDrivers.filter(d => d.vehicle_type === 'motorcycle').length}`);
-        console.log(`   - Cars: ${createdDrivers.filter(d => d.vehicle_type === 'car').length}\n`);
-        console.log(`✅ Cashiers: ${createdCashiers.length}`);
-        console.log(`   - Active: ${createdCashiers.filter(c => c.is_active).length}\n`);
-        console.log('📝 Test Credentials:');
+        
+        console.log(`✅ Drivers: ${createdDrivers.length} total`);
+        console.log(`   📍 Available: ${availableDrivers.length}`);
+        console.log(`   🚫 Unavailable: ${unavailableDrivers.length}`);
+        console.log(`   🏍️  Motorcycles: ${motorcycleDrivers.length}`);
+        console.log(`   🚗 Cars: ${carDrivers.length}`);
+        console.log(`   ⭐ Average Rating: ${avgRating.toFixed(2)}/5.0`);
+        console.log(`   📝 Total Reviews: ${totalRatings}`);
+        console.log(`   💵 Total Cash Earnings: EGP ${totalEarningsCash.toLocaleString()}`);
+        console.log(`   💳 Total Online Earnings: EGP ${totalEarningsOnline.toLocaleString()}`);
+        console.log(`   💰 Total Platform Fees Owed: EGP ${totalPlatformFees.toLocaleString()}\n`);
+        
+        console.log(`✅ Cashiers: ${createdCashiers.length} total`);
+        console.log(`   ✅ Active: ${createdCashiers.filter(c => c.is_active).length}\n`);
+        
+        console.log('📝 Test Credentials (Password: password123):');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        console.log('\n🛵 Drivers (Password: password123):');
-        createdDrivers.slice(0, 3).forEach(driver => {
-            console.log(`   ${driver.full_name}: ${driver.email}`);
-        });
-        console.log('\n💰 Cashiers (Password: password123):');
-        createdCashiers.slice(0, 3).forEach(cashier => {
-            console.log(`   ${cashier.full_name}: ${cashier.email}`);
+        console.log('\n🛵 Top 5 Drivers:');
+        createdDrivers
+            .sort((a, b) => Number(b.rating_average) - Number(a.rating_average))
+            .slice(0, 5)
+            .forEach((driver, index) => {
+                console.log(`   ${index + 1}. ${driver.full_name}`);
+                console.log(`      📧 ${driver.email}`);
+                console.log(`      📱 ${driver.phone}`);
+                console.log(`      🚗 ${driver.vehicle_type === 'car' ? 'Car' : 'Motorcycle'}`);
+                console.log(`      ⭐ ${Number(driver.rating_average).toFixed(2)} (${driver.rating_count} reviews)`);
+                console.log(`      ${driver.is_available ? '✅ Available' : '❌ Unavailable'}`);
+                console.log(`      💵 Earnings: EGP ${(Number(driver.earnings_cash) + Number(driver.earnings_online)).toLocaleString()}`);
+                console.log('');
+            });
+        
+        console.log('💰 Top 5 Cashiers:');
+        createdCashiers.slice(0, 5).forEach((cashier, index) => {
+            const business = businesses.find(b => b.id === cashier.business_id);
+            console.log(`   ${index + 1}. ${cashier.full_name}`);
+            console.log(`      📧 ${cashier.email}`);
+            console.log(`      🏢 ${business ? business.business_name : 'N/A'}`);
+            console.log('');
         });
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
