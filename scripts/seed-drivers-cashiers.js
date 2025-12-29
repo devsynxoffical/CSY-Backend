@@ -101,18 +101,44 @@ async function seedDriversAndCashiers() {
         // 25 drivers with varied profiles, locations, earnings, and ratings
         const driversData = [
             // Top Performers (High Ratings & Earnings)
+            // Ahmed Hassan - Experienced Motorcycle Driver
+            // Location: Downtown Cairo (Tahrir Square area)
+            // Specializes in fast food and restaurant deliveries
+            // Active since: 8 months ago
+            // Total Deliveries Completed: ~450 orders
+            // Average Delivery Time: 18 minutes
+            // Completion Rate: 98.5%
+            // Response Time: < 2 minutes
             {
                 full_name: 'Ahmed Hassan',
                 email: 'ahmed.hassan.driver@example.com',
                 phone: '+201012345678',
                 vehicle_type: 'motorcycle',
                 profile_picture: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop',
+                // Location: Downtown Cairo, Tahrir Square area (30.0444, 31.2357)
+                // Prime location for high-volume deliveries
                 current_latitude: 30.0444,
                 current_longitude: 31.2357,
                 is_available: true,
+                // Earnings Breakdown:
+                // - Cash Earnings: EGP 18,500 (from 280 cash orders)
+                // - Online Earnings: EGP 32,000 (from 170 online orders)
+                // - Total Earnings: EGP 50,500
+                // - Average per delivery: EGP 112
                 earnings_cash: 18500,
                 earnings_online: 32000,
+                // Platform Fees: 2% of total earnings = EGP 1,010
+                // Remaining after fees: EGP 49,490
                 platform_fees_owed: 1010,
+                // Rating Details:
+                // - 127 total reviews
+                // - 5 stars: 98 reviews (77%)
+                // - 4 stars: 24 reviews (19%)
+                // - 3 stars: 4 reviews (3%)
+                // - 2 stars: 1 review (1%)
+                // - 1 star: 0 reviews (0%)
+                // - Average: 4.85/5.0
+                // - Positive feedback: "Fast delivery", "Friendly", "Always on time"
                 rating_average: 4.85,
                 rating_count: 127
             },
