@@ -553,6 +553,14 @@ class DriverController {
    */
   async acceptOrder(req, res) {
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized',
+          error: 'Driver authentication required'
+        });
+      }
+
       const driverId = req.user.id;
       const orderId = req.params.id;
 
