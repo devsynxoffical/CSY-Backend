@@ -1,0 +1,742 @@
+{
+	"info": {
+		"_postman_id": "business-scanner-api-collection",
+		"name": "Business Scanner API - Complete Collection",
+		"description": "Complete Postman collection for Business QR Code Scanner APIs. Includes QR generation, validation, and scanning endpoints with all required parameters and authentication.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Authentication",
+			"item": [
+				{
+					"name": "Business Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.token) {",
+									"        pm.environment.set('businessToken', response.data.token);",
+									"        pm.environment.set('businessId', response.data.business.id);",
+									"        console.log('Business Token saved:', response.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"business@example.com\",\n    \"password\": \"businesspassword123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/business/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"login"
+							]
+						},
+						"description": "Login as a business to get authentication token"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. QR Code Generation",
+			"item": [
+				{
+					"name": "Generate Order QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.qr_token) {",
+									"        pm.environment.set('orderQRToken', response.data.qr_token);",
+									"        console.log('Order QR Token saved:', response.data.qr_token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"order\",\n    \"reference_id\": \"{{orderId}}\",\n    \"additional_data\": {\n        \"business_id\": \"{{businessId}}\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/generate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"generate"
+							]
+						},
+						"description": "Generate QR code for an order. The order must belong to this business."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Reservation QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.qr_token) {",
+									"        pm.environment.set('reservationQRToken', response.data.qr_token);",
+									"        console.log('Reservation QR Token saved:', response.data.qr_token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"reservation\",\n    \"reference_id\": \"{{reservationId}}\",\n    \"additional_data\": {\n        \"business_id\": \"{{businessId}}\"\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/generate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"generate"
+							]
+						},
+						"description": "Generate QR code for a reservation. The reservation must belong to this business."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Payment QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.qr_token) {",
+									"        pm.environment.set('paymentQRToken', response.data.qr_token);",
+									"        console.log('Payment QR Token saved:', response.data.qr_token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"payment\",\n    \"reference_id\": \"{{orderId}}\",\n    \"additional_data\": {\n        \"business_id\": \"{{businessId}}\",\n        \"amount\": 15000\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/generate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"generate"
+							]
+						},
+						"description": "Generate QR code for payment. Amount is in piastres (15000 = 150 EGP)."
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Discount QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.success && response.data && response.data.qr_token) {",
+									"        pm.environment.set('discountQRToken', response.data.qr_token);",
+									"        console.log('Discount QR Token saved:', response.data.qr_token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"type\": \"discount\",\n    \"reference_id\": \"discount-{{$randomInt}}\",\n    \"additional_data\": {\n        \"business_id\": \"{{businessId}}\",\n        \"discount_percentage\": 15,\n        \"max_discount_amount\": 5000\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/generate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"generate"
+							]
+						},
+						"description": "Generate QR code for discount. Discount percentage and max amount are optional."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. QR Code Validation",
+			"item": [
+				{
+					"name": "Validate QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has success field', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response).to.have.property('success');",
+									"});",
+									"",
+									"pm.test('QR validation result', function () {",
+									"    const response = pm.response.json();",
+									"    if (response.success) {",
+									"        pm.expect(response.data).to.have.property('is_valid');",
+									"        console.log('QR is valid:', response.data.is_valid);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qr_token\": \"{{qrToken}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/validate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"validate"
+							]
+						},
+						"description": "Validate if a QR code token is valid and not expired. Use this before scanning to check QR code status."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. QR Code Scanning",
+			"item": [
+				{
+					"name": "Scan Order QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Order QR scanned successfully', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"    pm.expect(response.data).to.have.property('order');",
+									"    console.log('Order scanned:', response.data.order);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qr_token\": \"{{orderQRToken}}\",\n    \"action\": \"process\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/scan",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"scan"
+							]
+						},
+						"description": "Scan an order QR code. Business can only scan orders that belong to them. Action can be 'process', 'redeem', or 'confirm_pickup'."
+					},
+					"response": []
+				},
+				{
+					"name": "Scan Reservation QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Reservation QR scanned successfully', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"    pm.expect(response.data).to.have.property('reservation');",
+									"    console.log('Reservation scanned:', response.data.reservation);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qr_token\": \"{{reservationQRToken}}\",\n    \"action\": \"process\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/scan",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"scan"
+							]
+						},
+						"description": "Scan a reservation QR code. Business can only scan reservations that belong to them."
+					},
+					"response": []
+				},
+				{
+					"name": "Scan Payment QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Payment QR scanned successfully', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"    console.log('Payment processed:', response.data);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qr_token\": \"{{paymentQRToken}}\",\n    \"action\": \"process\",\n    \"additional_data\": {\n        \"amount\": 15000\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/scan",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"scan"
+							]
+						},
+						"description": "Scan a payment QR code. Amount should match the order total. Business can only process payments for their own orders."
+					},
+					"response": []
+				},
+				{
+					"name": "Scan Discount QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Discount QR scanned successfully', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"    console.log('Discount applied:', response.data);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qr_token\": \"{{discountQRToken}}\",\n    \"action\": \"redeem\",\n    \"additional_data\": {\n        \"order_id\": \"{{orderId}}\",\n        \"discount_percentage\": 15\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/scan",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"scan"
+							]
+						},
+						"description": "Scan a discount QR code to apply discount to an order. Action should be 'redeem'."
+					},
+					"response": []
+				},
+				{
+					"name": "Scan Driver Pickup QR Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Driver pickup QR scanned successfully', function () {",
+									"    const response = pm.response.json();",
+									"    pm.expect(response.success).to.be.true;",
+									"    console.log('Pickup confirmed:', response.data);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{businessToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"qr_token\": \"{{driverPickupQRToken}}\",\n    \"action\": \"confirm_pickup\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/qr/scan",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"qr",
+								"scan"
+							]
+						},
+						"description": "Scan a driver pickup QR code to confirm order pickup. Action should be 'confirm_pickup'. Business can only confirm pickups for their own orders."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Auto-set base_url if not set",
+					"if (!pm.environment.get('base_url')) {",
+					"    pm.environment.set('base_url', 'https://csy-backend-production.up.railway.app');",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"// Global test: Check if response time is acceptable",
+					"pm.test('Response time is less than 5000ms', function () {",
+					"    pm.expect(pm.response.responseTime).to.be.below(5000);",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://csy-backend-production.up.railway.app",
+			"type": "string"
+		},
+		{
+			"key": "businessToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "businessId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orderId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "reservationId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "qrToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "orderQRToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "reservationQRToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "paymentQRToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "discountQRToken",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "driverPickupQRToken",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
+
