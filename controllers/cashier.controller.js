@@ -15,7 +15,7 @@ class CashierController {
   /**
    * Helper method to find order by UUID or order_number
    */
-  async findOrderByIdentifier(identifier, businessId) {
+  static async findOrderByIdentifier(identifier, businessId) {
     // Check if it's a UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     
@@ -331,7 +331,7 @@ class CashierController {
 
       // Find order and verify it belongs to cashier's business
       // Order doesn't have business_id, so we check through OrderItem
-      const order = await this.findOrderByIdentifier(orderId, cashier.business_id);
+      const order = await CashierController.findOrderByIdentifier(orderId, cashier.business_id);
 
       if (!order || order.order_items.length === 0) {
         return res.status(404).json({
@@ -617,7 +617,7 @@ class CashierController {
       }
 
       // Find order and verify it belongs to cashier's business
-      const order = await this.findOrderByIdentifier(orderId, cashier.business_id);
+      const order = await CashierController.findOrderByIdentifier(orderId, cashier.business_id);
 
       if (!order || order.order_items.length === 0) {
         return res.status(404).json({
