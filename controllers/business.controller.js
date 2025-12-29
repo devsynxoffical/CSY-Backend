@@ -1530,7 +1530,7 @@ CSY Pro Team`
         'name',
         'description',
         'ingredients',
-        'image',
+        'image_url',
         'price',
         'add_ons',
         'is_available'

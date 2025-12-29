@@ -352,15 +352,11 @@ class CashierController {
       }
 
       // Update order - use the actual order id (UUID)
+      // Note: Order model doesn't have a notes field, so we skip it
       const updateData = {
         status: status,
         updated_at: new Date()
       };
-
-      // Add notes if provided
-      if (notes) {
-        updateData.notes = notes;
-      }
 
       await prisma.order.update({
         where: { id: order.id },
