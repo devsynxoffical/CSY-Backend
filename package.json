@@ -14,6 +14,7 @@
     "db:seed:dashboard": "node scripts/seed-dashboard-data.js",
     "db:seed:alexandria": "node scripts/seed-alexandria-businesses.js",
     "db:seed:drivers-cashiers": "node scripts/seed-drivers-cashiers.js",
+    "db:seed:driver-orders": "node scripts/seed-driver-orders.js",
     "db:seed:reservations": "node scripts/seed-business-reservations.js",
     "db:create:test-accounts": "node scripts/create-test-accounts.js",
     "db:check:photos": "node scripts/check-business-photos.js",
