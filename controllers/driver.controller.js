@@ -564,35 +564,54 @@ class DriverController {
       const driverId = req.user.id;
       const orderId = req.params.id;
 
-      // Find order
+      // Find order by ID only (not by driver_id, because incoming orders have driver_id = null)
       const order = await prisma.order.findUnique({
-        where: {
-          id: orderId,
-          driver_id: driverId
-        }
+        where: { id: orderId }
       });
 
       if (!order) {
         return res.status(404).json({
           success: false,
           message: 'Order not found',
-          error: 'Order not assigned to this driver'
+          error: 'Order does not exist'
         });
       }
 
+      // Check if order is available for acceptance
+      // Order should be in 'waiting_driver' status and either:
+      // 1. Not assigned to any driver (driver_id is null), OR
+      // 2. Already assigned to this driver (driver_id = driverId)
       if (order.status !== 'waiting_driver') {
         return res.status(400).json({
           success: false,
           message: 'Order cannot be accepted',
-          error: `Order is already ${order.status}`
+          error: `Order is in ${order.status} status. Only orders with 'waiting_driver' status can be accepted.`
         });
       }
 
-      // Update order status
-      // Update order status
+      // Check if order is already assigned to another driver
+      if (order.driver_id && order.driver_id !== driverId) {
+        return res.status(403).json({
+          success: false,
+          message: 'Order already assigned',
+          error: 'This order has already been assigned to another driver'
+        });
+      }
+
+      // Only delivery orders need drivers
+      if (order.order_type !== 'delivery') {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid order type',
+          error: 'Only delivery orders can be accepted by drivers'
+        });
+      }
+
+      // Update order: Assign driver AND change status to 'in_delivery'
       await prisma.order.update({
         where: { id: orderId },
         data: {
+          driver_id: driverId,  // Assign driver to this order
           status: 'in_delivery',
           updated_at: new Date()
         }
