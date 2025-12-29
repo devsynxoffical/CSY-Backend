@@ -5,6 +5,7 @@ const router = express.Router();
 const cashierController = require('../controllers/cashier.controller');
 const {
   validateOrderId,
+  validateUUID,
   authenticateCashier
 } = require('../middlewares');
 
