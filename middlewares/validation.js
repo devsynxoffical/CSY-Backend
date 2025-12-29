@@ -416,6 +416,28 @@ const validateUUID = [
   handleValidationErrors
 ];
 
+// Validate order ID - accepts either UUID or order_number format
+const validateOrderId = [
+  param('id')
+    .isString()
+    .notEmpty()
+    .withMessage('Order ID is required')
+    .custom((value) => {
+      // Check if it's a UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      // Check if it's an order_number format (ORD-YYYYMMDD-XXXXXX)
+      const orderNumberRegex = /^ORD-\d{8}-\d+$/;
+      
+      if (uuidRegex.test(value) || orderNumberRegex.test(value)) {
+        return true;
+      }
+      
+      throw new Error('Order ID must be a valid UUID or order number (ORD-YYYYMMDD-XXXXXX)');
+    }),
+
+  handleValidationErrors
+];
+
 // Order validation rules
 const validateOrderUpdate = [
   body('delivery_address')
@@ -664,6 +686,7 @@ module.exports = {
   validateVerifyOTP,
   validateObjectId,
   validateUUID,
+  validateOrderId,
   validatePagination,
   customValidators
 };

@@ -13,6 +13,40 @@ const { SUCCESS_MESSAGES, ERROR_MESSAGES } = require('../config/constants');
  */
 class CashierController {
   /**
+   * Helper method to find order by UUID or order_number
+   */
+  async findOrderByIdentifier(identifier, businessId) {
+    // Check if it's a UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    
+    let order;
+    if (uuidRegex.test(identifier)) {
+      // It's a UUID, find by id
+      order = await prisma.order.findUnique({
+        where: { id: identifier },
+        include: {
+          order_items: {
+            where: { business_id: businessId },
+            take: 1
+          }
+        }
+      });
+    } else {
+      // It's an order_number, find by order_number
+      order = await prisma.order.findUnique({
+        where: { order_number: identifier },
+        include: {
+          order_items: {
+            where: { business_id: businessId },
+            take: 1
+          }
+        }
+      });
+    }
+    
+    return order;
+  }
+  /**
    * Cashier login
    */
   async login(req, res) {
@@ -297,15 +331,7 @@ class CashierController {
 
       // Find order and verify it belongs to cashier's business
       // Order doesn't have business_id, so we check through OrderItem
-      const order = await prisma.order.findUnique({
-        where: { id: orderId },
-        include: {
-          order_items: {
-            where: { business_id: cashier.business_id },
-            take: 1
-          }
-        }
-      });
+      const order = await this.findOrderByIdentifier(orderId, cashier.business_id);
 
       if (!order || order.order_items.length === 0) {
         return res.status(404).json({
@@ -325,7 +351,7 @@ class CashierController {
         });
       }
 
-      // Update order
+      // Update order - use the actual order id (UUID)
       const updateData = {
         status: status,
         updated_at: new Date()
@@ -337,20 +363,21 @@ class CashierController {
       }
 
       await prisma.order.update({
-        where: { id: orderId },
+        where: { id: order.id },
         data: updateData
       });
 
       logger.info('Order status updated by cashier', {
         cashierId,
-        orderId,
+        orderId: order.id,
+        orderNumber: order.order_number,
         oldStatus: order.status,
         newStatus: status
       });
 
       // Get updated order with full details
       const updatedOrder = await prisma.order.findUnique({
-        where: { id: orderId },
+        where: { id: order.id },
         include: {
           user: {
             select: { id: true, full_name: true, phone: true }
@@ -590,17 +617,7 @@ class CashierController {
       }
 
       // Find order and verify it belongs to cashier's business
-      const order = await prisma.order.findUnique({
-        where: { id: orderId },
-        include: {
-          order_items: {
-            where: {
-              business_id: cashier.business_id
-            },
-            take: 1
-          }
-        }
-      });
+      const order = await this.findOrderByIdentifier(orderId, cashier.business_id);
 
       if (!order || order.order_items.length === 0) {
         return res.status(404).json({
@@ -627,9 +644,9 @@ class CashierController {
         });
       }
 
-      // Update order payment status
+      // Update order payment status - use the actual order id (UUID)
       await prisma.order.update({
-        where: { id: orderId },
+        where: { id: order.id },
         data: {
           payment_method: payment_method || 'cash',
           payment_status: 'paid',
@@ -639,7 +656,8 @@ class CashierController {
 
       logger.info('Payment processed by cashier', {
         cashierId,
-        orderId,
+        orderId: order.id,
+        orderNumber: order.order_number,
         amount: order.final_amount,
         method: payment_method || 'cash'
       });
@@ -654,7 +672,8 @@ class CashierController {
         success: true,
         message: 'Payment processed successfully',
         data: {
-          orderId,
+          orderId: order.id,
+          orderNumber: order.order_number,
           payment_amount: order.final_amount,
           payment_method: payment_method || 'cash',
           payment_status: 'paid',

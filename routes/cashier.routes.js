@@ -4,7 +4,7 @@ const router = express.Router();
 // Import controllers and middlewares
 const cashierController = require('../controllers/cashier.controller');
 const {
-  validateUUID,
+  validateOrderId,
   authenticateCashier
 } = require('../middlewares');
 
@@ -291,7 +291,7 @@ router.get('/orders',
 router.put('/orders/:id/status',
   authenticateCashier,
   generalLimiter,
-  validateUUID,
+  validateOrderId,
   cashierController.updateOrderStatus
 );
 
@@ -501,7 +501,7 @@ router.put('/products/:id/availability',
 router.post('/orders/:id/payment',
   authenticateCashier,
   generalLimiter,
-  validateUUID,
+  validateOrderId,
   cashierController.processPayment
 );
 
