@@ -1,0 +1,879 @@
+{
+	"info": {
+		"_postman_id": "business-listing-api-collection",
+		"name": "Business Listing API - Categories, Filters & Offers",
+		"description": "Complete Postman collection for Business Listing APIs with category filtering, type filtering, sorting (nearest, highest rated), and special offers endpoints.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Get All Businesses",
+			"item": [
+				{
+					"name": "Get All Businesses (Basic)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number"
+								},
+								{
+									"key": "limit",
+									"value": "20",
+									"description": "Items per page"
+								}
+							]
+						},
+						"description": "Get all active businesses with pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Businesses by City",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?city=Alexandria&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Alexandria",
+									"description": "Filter by city name"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get businesses filtered by city"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Businesses",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?search=pizza&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "pizza",
+									"description": "Search by business name or description"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Search businesses by name or description"
+					},
+					"response": []
+				}
+			],
+			"description": "Basic business listing endpoints"
+		},
+		{
+			"name": "2. Category Filtering",
+			"item": [
+				{
+					"name": "Get Restaurants",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?category=restaurants&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "restaurants",
+									"description": "Category: restaurants, cafes, cafés, bars, games, sports, games/sports"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get all restaurant businesses"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cafés",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?category=cafes&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "cafes",
+									"description": "Get cafe businesses"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get all cafe businesses"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Bars",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?category=bars&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "bars",
+									"description": "Get bar/recreational businesses"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get all bar/recreational businesses"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Games/Sports",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?category=games/sports&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "games/sports",
+									"description": "Get games/sports/recreational businesses"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get all games/sports/recreational businesses"
+					},
+					"response": []
+				}
+			],
+			"description": "Filter businesses by category (Restaurants, Cafés, Bars, Games/Sports)"
+		},
+		{
+			"name": "3. Type Filtering",
+			"item": [
+				{
+					"name": "Get Restaurant Type",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?type=restaurant&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "restaurant",
+									"description": "Type: restaurant, fast_food, cafe, juice, juice_shop"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get businesses of type restaurant"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Fast Food",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?type=fast_food&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "fast_food",
+									"description": "Get fast food businesses"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get businesses of type fast_food"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cafe Type",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?type=cafe&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "cafe",
+									"description": "Get cafe businesses"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get businesses of type cafe"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Juice Shops",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?type=juice&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "juice",
+									"description": "Get juice shop businesses (also accepts juice_shop)"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get businesses of type juice_shop"
+					},
+					"response": []
+				}
+			],
+			"description": "Filter businesses by type (Restaurant, Fast Food, Cafe, Juice)"
+		},
+		{
+			"name": "4. Sorting",
+			"item": [
+				{
+					"name": "Sort by Highest Rated",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?sort=highest_rated&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "sort",
+									"value": "highest_rated",
+									"description": "Sort options: nearest, highest_rated, rating, created_at"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get businesses sorted by highest rating"
+					},
+					"response": []
+				},
+				{
+					"name": "Sort by Nearest (with location)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?sort=nearest&latitude=31.2001&longitude=29.9187&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "sort",
+									"value": "nearest",
+									"description": "Sort by distance (requires latitude & longitude)"
+								},
+								{
+									"key": "latitude",
+									"value": "31.2001",
+									"description": "User's latitude (required for nearest sort)"
+								},
+								{
+									"key": "longitude",
+									"value": "29.9187",
+									"description": "User's longitude (required for nearest sort)"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get businesses sorted by nearest distance. Response includes 'distance' field in kilometers."
+					},
+					"response": []
+				},
+				{
+					"name": "Restaurants - Highest Rated in City",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?category=restaurants&city=Alexandria&sort=highest_rated&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "restaurants"
+								},
+								{
+									"key": "city",
+									"value": "Alexandria"
+								},
+								{
+									"key": "sort",
+									"value": "highest_rated"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get restaurants in Alexandria sorted by highest rating"
+					},
+					"response": []
+				},
+				{
+					"name": "Cafes - Nearest to Location",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?category=cafes&sort=nearest&latitude=30.0444&longitude=31.2357&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "cafes"
+								},
+								{
+									"key": "sort",
+									"value": "nearest"
+								},
+								{
+									"key": "latitude",
+									"value": "30.0444",
+									"description": "Cairo coordinates"
+								},
+								{
+									"key": "longitude",
+									"value": "31.2357"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get cafes nearest to Cairo location"
+					},
+					"response": []
+				}
+			],
+			"description": "Sort businesses by nearest distance or highest rating"
+		},
+		{
+			"name": "5. Combined Filters",
+			"item": [
+				{
+					"name": "Fast Food in City - Highest Rated",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?type=fast_food&city=Cairo&sort=highest_rated&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "fast_food"
+								},
+								{
+									"key": "city",
+									"value": "Cairo"
+								},
+								{
+									"key": "sort",
+									"value": "highest_rated"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get fast food businesses in Cairo, sorted by highest rating"
+					},
+					"response": []
+				},
+				{
+					"name": "Search + Category + Sort",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?search=pizza&category=restaurants&sort=highest_rated&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "pizza"
+								},
+								{
+									"key": "category",
+									"value": "restaurants"
+								},
+								{
+									"key": "sort",
+									"value": "highest_rated"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Search for pizza in restaurants, sorted by highest rating"
+					},
+					"response": []
+				},
+				{
+					"name": "Category + City + Nearest",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business?category=restaurants&city=Alexandria&sort=nearest&latitude=31.2001&longitude=29.9187&page=1&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "restaurants"
+								},
+								{
+									"key": "city",
+									"value": "Alexandria"
+								},
+								{
+									"key": "sort",
+									"value": "nearest"
+								},
+								{
+									"key": "latitude",
+									"value": "31.2001"
+								},
+								{
+									"key": "longitude",
+									"value": "29.9187"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						},
+						"description": "Get restaurants in Alexandria, sorted by nearest distance"
+					},
+					"response": []
+				}
+			],
+			"description": "Combine multiple filters and sorting options"
+		},
+		{
+			"name": "6. Special Offers",
+			"item": [
+				{
+					"name": "Get All Active Offers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business/offers/public?limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"offers",
+								"public"
+							],
+							"query": [
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Maximum number of offers to return"
+								}
+							]
+						},
+						"description": "Get all active special offers from all businesses"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Offers by City",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business/offers/public?city=Alexandria&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"offers",
+								"public"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Alexandria",
+									"description": "Filter offers by city"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get active offers in a specific city"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Restaurant Offers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business/offers/public?business_type=restaurant&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"offers",
+								"public"
+							],
+							"query": [
+								{
+									"key": "business_type",
+									"value": "restaurant",
+									"description": "Filter offers by business type"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get active offers from restaurant businesses"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Cafe Offers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business/offers/public?business_type=cafe&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"offers",
+								"public"
+							],
+							"query": [
+								{
+									"key": "business_type",
+									"value": "cafe"
+								},
+								{
+									"key": "limit",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get active offers from cafe businesses"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Offers - City + Type",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/business/offers/public?city=Cairo&business_type=restaurant&limit=5",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"business",
+								"offers",
+								"public"
+							],
+							"query": [
+								{
+									"key": "city",
+									"value": "Cairo"
+								},
+								{
+									"key": "business_type",
+									"value": "restaurant"
+								},
+								{
+									"key": "limit",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Get restaurant offers in Cairo"
+					},
+					"response": []
+				}
+			],
+			"description": "Get public special offers from businesses"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "https://csy-backend-production.up.railway.app",
+			"type": "string"
+		}
+	]
+}
+

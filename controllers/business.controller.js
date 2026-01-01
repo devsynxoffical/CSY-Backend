@@ -250,22 +250,83 @@ CSY Pro Team`
   }
 
   /**
-   * Get all businesses with filtering
+   * Get all businesses with filtering, sorting, and location support
+   * Supports:
+   * - Category filtering (restaurants, cafes, bars, games/sports)
+   * - Type filtering (restaurant, fast_food, cafe, juice_shop)
+   * - Sorting (nearest, highest_rated)
+   * - Location-based distance calculation
    */
   async getAllBusinesses(req, res) {
     try {
-      const { city, type, app_type, search, page = 1, limit = 20 } = req.query;
+      const { 
+        city, 
+        category, 
+        type, 
+        app_type, 
+        search, 
+        sort = 'created_at',
+        latitude,
+        longitude,
+        page = 1, 
+        limit = 20 
+      } = req.query;
 
       const whereClause = { is_active: true };
 
+      // Category mapping: Restaurants, Cafés, Bars, Games/Sports
+      const categoryMap = {
+        'restaurants': 'restaurant',
+        'cafes': 'cafe',
+        'cafés': 'cafe',
+        'bars': 'recreational',
+        'games': 'recreational',
+        'sports': 'recreational',
+        'games/sports': 'recreational'
+      };
+
+      // Type filtering (Restaurant, Fast Food, Cafe, Juice)
+      const typeMap = {
+        'restaurant': 'restaurant',
+        'fast_food': 'fast_food',
+        'fastfood': 'fast_food',
+        'cafe': 'cafe',
+        'juice': 'juice_shop',
+        'juice_shop': 'juice_shop'
+      };
+
       if (city) whereClause.city = { contains: city, mode: 'insensitive' };
-      if (type) whereClause.business_type = type;
+      
+      // Category filtering
+      if (category) {
+        const mappedCategory = categoryMap[category.toLowerCase()];
+        if (mappedCategory) {
+          whereClause.business_type = mappedCategory;
+        }
+      }
+      
+      // Type filtering
+      if (type) {
+        const mappedType = typeMap[type.toLowerCase()] || type;
+        whereClause.business_type = mappedType;
+      }
+      
       if (app_type) whereClause.app_type = app_type;
+      
       if (search) {
         whereClause.OR = [
           { business_name: { contains: search, mode: 'insensitive' } },
           { description: { contains: search, mode: 'insensitive' } }
         ];
+      }
+
+      // Determine orderBy based on sort parameter
+      let orderBy = { created_at: 'desc' };
+      if (sort === 'highest_rated' || sort === 'rating') {
+        orderBy = { rating_average: 'desc' };
+      } else if (sort === 'nearest' && latitude && longitude) {
+        // For nearest, we'll sort by distance after fetching
+        orderBy = { created_at: 'desc' };
       }
 
       const [businesses, total] = await Promise.all([
@@ -285,21 +346,53 @@ CSY Pro Team`
             rating_count: true,
             photos: true,
             has_reservations: true,
-            has_delivery: true,
-            is_active: true
+            has_delivery: true
           },
           skip: (parseInt(page) - 1) * parseInt(limit),
           take: parseInt(limit),
-          orderBy: { created_at: 'desc' }
+          orderBy
         }),
         prisma.business.count({ where: whereClause })
       ]);
+
+      // Calculate distance and sort by nearest if requested
+      let processedBusinesses = businesses;
+      if (sort === 'nearest' && latitude && longitude) {
+        const { calculateDistance } = require('../utils');
+        processedBusinesses = businesses.map(business => {
+          let distance = null;
+          if (business.latitude && business.longitude) {
+            distance = calculateDistance(
+              parseFloat(latitude),
+              parseFloat(longitude),
+              Number(business.latitude),
+              Number(business.longitude)
+            );
+          }
+          return {
+            ...business,
+            distance: distance !== null ? parseFloat(distance.toFixed(2)) : null
+          };
+        }).sort((a, b) => {
+          if (a.distance === null) return 1;
+          if (b.distance === null) return -1;
+          return a.distance - b.distance;
+        });
+      } else {
+        // Format latitude/longitude as numbers
+        processedBusinesses = businesses.map(business => ({
+          ...business,
+          latitude: business.latitude ? Number(business.latitude) : null,
+          longitude: business.longitude ? Number(business.longitude) : null,
+          rating_average: business.rating_average ? Number(business.rating_average) : 0
+        }));
+      }
 
       res.json({
         success: true,
         message: 'Businesses retrieved successfully',
         data: {
-          businesses,
+          businesses: processedBusinesses,
           pagination: {
             page: parseInt(page),
             limit: parseInt(limit),
@@ -2789,7 +2882,7 @@ CSY Pro Team`
   }
 
   /**
-   * Get business offers
+   * Get business offers (authenticated - for business owner)
    */
   async getOffers(req, res) {
     try {
@@ -2807,6 +2900,95 @@ CSY Pro Team`
     } catch (error) {
       logger.error('Get offers failed', { businessId: req.business.id, error: error.message });
       res.status(500).json({ success: false, message: 'Failed to retrieve offers', error: error.message });
+    }
+  }
+
+  /**
+   * Get public special offers (for app home screen)
+   * Returns active offers from all businesses
+   */
+  async getPublicOffers(req, res) {
+    try {
+      const { city, business_type, limit = 10 } = req.query;
+      const now = new Date();
+
+      const whereClause = {
+        is_active: true,
+        start_date: { lte: now },
+        end_date: { gte: now },
+        business: {
+          is_active: true
+        }
+      };
+
+      if (city) {
+        whereClause.business = {
+          ...whereClause.business,
+          city: { contains: city, mode: 'insensitive' }
+        };
+      }
+
+      if (business_type) {
+        whereClause.business = {
+          ...whereClause.business,
+          business_type: business_type
+        };
+      }
+
+      const offers = await prisma.offer.findMany({
+        where: whereClause,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          image_url: true,
+          discount_percentage: true,
+          start_date: true,
+          end_date: true,
+          business: {
+            select: {
+              id: true,
+              business_name: true,
+              business_type: true,
+              city: true,
+              photos: true
+            }
+          }
+        },
+        orderBy: { created_at: 'desc' },
+        take: parseInt(limit)
+      });
+
+      // Format response - clean up fields
+      const formattedOffers = offers.map(offer => ({
+        id: offer.id,
+        title: offer.title,
+        description: offer.description,
+        image_url: offer.image_url,
+        discount_percentage: Number(offer.discount_percentage),
+        start_date: offer.start_date,
+        end_date: offer.end_date,
+        business: {
+          id: offer.business.id,
+          name: offer.business.business_name,
+          type: offer.business.business_type,
+          city: offer.business.city,
+          photo: offer.business.photos && offer.business.photos.length > 0 ? offer.business.photos[0] : null
+        }
+      }));
+
+      res.json({
+        success: true,
+        message: 'Special offers retrieved successfully',
+        data: formattedOffers
+      });
+    } catch (error) {
+      logger.error('Get public offers failed', { error: error.message });
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve special offers',
+        error: error.message
+      });
     }
   }
 

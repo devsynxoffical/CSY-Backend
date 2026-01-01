@@ -215,9 +215,9 @@ router.post('/login',
  * @swagger
  * /api/business:
  *   get:
- *     summary: Get all businesses
+ *     summary: Get all businesses with filtering and sorting
  *     tags: [Business Management]
- *     description: Retrieve a list of businesses with optional filtering
+ *     description: Retrieve a list of businesses with optional filtering, category, type, and sorting
  *     parameters:
  *       - in: query
  *         name: city
@@ -225,10 +225,44 @@ router.post('/login',
  *           type: string
  *         description: Filter by city
  *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *           enum: [restaurants, cafes, cafés, bars, games, sports, games/sports]
+ *         description: Filter by category (Restaurants, Cafés, Bars, Games/Sports)
+ *       - in: query
  *         name: type
  *         schema:
  *           type: string
- *         description: Filter by business type
+ *           enum: [restaurant, fast_food, cafe, juice, juice_shop]
+ *         description: Filter by business type (Restaurant, Fast Food, Cafe, Juice)
+ *       - in: query
+ *         name: app_type
+ *         schema:
+ *           type: string
+ *         description: Filter by app type
+ *       - in: query
+ *         name: search
+ *         schema:
+ *           type: string
+ *         description: Search by business name or description
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *           enum: [nearest, highest_rated, rating, created_at]
+ *           default: created_at
+ *         description: Sort by (nearest requires latitude/longitude)
+ *       - in: query
+ *         name: latitude
+ *         schema:
+ *           type: number
+ *         description: User latitude (required for nearest sort)
+ *       - in: query
+ *         name: longitude
+ *         schema:
+ *           type: number
+ *         description: User longitude (required for nearest sort)
  *       - in: query
  *         name: page
  *         schema:
@@ -248,6 +282,39 @@ router.post('/login',
 router.get('/',
   generalLimiter,
   businessController.getAllBusinesses
+);
+
+/**
+ * @swagger
+ * /api/business/offers/public:
+ *   get:
+ *     summary: Get public special offers
+ *     tags: [Business Management]
+ *     description: Retrieve active special offers from all businesses (for app home screen)
+ *     parameters:
+ *       - in: query
+ *         name: city
+ *         schema:
+ *           type: string
+ *         description: Filter by city
+ *       - in: query
+ *         name: business_type
+ *         schema:
+ *           type: string
+ *         description: Filter by business type
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 10
+ *         description: Maximum number of offers to return
+ *     responses:
+ *       200:
+ *         description: Special offers retrieved successfully
+ */
+router.get('/offers/public',
+  generalLimiter,
+  businessController.getPublicOffers
 );
 
 /**
